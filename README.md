@@ -16,3 +16,19 @@ The idea is that user downloads the documents and works through them sequentiall
 The tutorials are explicitly designed for new Julia users. They cover a range of topics including working with Julia's package manager, manipulating data, functions and loops, plotting and running differential equations. As a group, we use Julia for all of these tasks as well as running the BioEnergetic Food Web model. 
 
 Enjoy!
+
+# Project environment had been set on the 15th of September: 
+
+```julia
+file_to_rm = ["Project.toml", "Manifest.toml"]
+if any(isfile.(file_to_rm))
+  rm.(file_to_rm, force = true)
+end
+
+import Pkg
+Pkg.activate(".")
+
+Pkg.add(url="git@github.com:BecksLab/BEFWM2.git", rev="develop")
+Pkg.add(["Revise", "Plots", "DataFrames", "Distributions", "Random", "DelimitedFiles", "RDatasets", "Gadfly", "CSV"])
+```
+

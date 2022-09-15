@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.17.0
+# v0.19.9
 
 using Markdown
 using InteractiveUtils
@@ -50,7 +50,7 @@ To install Julia in VS Code do the following (you only need to do this once):
 - navigate to the 'Marketplace' (5th symbol down in the activity bar - vertical panel on the lefthand side of the screen)
 - search for Julia in the 'Search Extensions in Marketplace' search bar
 - install [Julia](https://marketplace.visualstudio.com/items?itemName=julialang.language-julia), this extension provides support for the Julia programming language
-- while you're there, also search for and install [Julia Formatter](https://marketplace.visualstudio.com/items?itemName=singularitti.vscode-julia-formatter), this extension will help you write clean code that is easier to read
+- ~~while you're there, also search for and install [Julia Formatter](https://marketplace.visualstudio.com/items?itemName=singularitti.vscode-julia-formatter), this extension will help you write clean code that is easier to read~~ (Now part of julia extension)
 
 There are **many** extensions that can make your life easier, visit the marketplace for extensions that can help you with pdfs, markdown and csv files, etc. There are also several useful extensions for GitHub linkage (we'll mentioned a few later on in this tutorial). 
 
@@ -64,6 +64,13 @@ A good practice to adopt when coding is to always work in a contained project en
 
 To set up a project in VS Code, start by: 
 - Creating a folder at a location of your choosing (e.g. within your Documents folder). We will name our folder 'Julia - VS code - how to' for the examples that follow but please feel free to replace this name as you see fit.
+
+Alternatively, we can create our project directly in Julia:
+1. Create a directory just aside from this project folder, run: `mkdir("../Julia - VS code - how to")`
+1. Navigate to this new folder: `cd("../Julia - VS code - how to")`
+1. Optionnaly, you can check that you are in the good directory: `pwd()`
+1. Let's create a julia file to script in our new folder: `touch("JuliaTuto.jl")`
+1. Open your new script from your explorer (i.e. VScode, Atom, Vim, Emacs (brrrrr), ...))
 
 To open your new project in VS Code (e.g. here 'Julia - VS code - how to'):
 - click on the 'Explorer' symbol (top symbol on the activity bar) and click Open Folder
@@ -109,7 +116,7 @@ The project environment is stored in two files:
 You don't have to create or modify these two files, they are automatically created once you have activated your project and installed your first package. 
 
 To activate a project:
-- activate your project by typing `] activate .` in the REPL or by using `Pkg.activate(".")` in the script
+- activate your project by typing `]` and then `activate .` in the REPL or by using `Pkg.activate(".")` (preceded by `import Pkg`) in the script
 - activation is done automatically in VS Code, however, it remains an important point as activation ensures that your project is 'active' and can use package operations
 Note: the dot `.` stands for the current working directory. You could also use `pwd` and activate using `Pkg.activate(pwd())` or `Pkg.activate("path/to/folder/Julia - VS code - how to/Project.toml")`. 
 
@@ -172,8 +179,8 @@ import Pkg
 #if not already done, activate your project
 Pkg.activate(".")
 #download Project and Manifest
-download("https://raw.githubusercontent.com/cagriffiths/VS-code-for-Julia/main/Project.toml", "Project.toml")
-download("https://raw.githubusercontent.com/cagriffiths/VS-code-for-Julia/main/Manifest.toml", "Manifest.toml")
+download("https://raw.githubusercontent.com/BecksLab/JuliaTutorials_BecksLab/BEFWM2/Project.toml", "Project.toml")
+download("https://raw.githubusercontent.com/BecksLab/JuliaTutorials_BecksLab/BEFWM2/Manifest.toml", "Manifest.toml")
 #install the packages necessary for these tutorials
 Pkg.instantiate()
 #check the pkg status (same as using st)
@@ -183,27 +190,35 @@ Pkg.status()
 You should see the following in the REPL (the only difference might be your project name):
 
 ```julia; eval = false
-(Julia - VS code - how to) pkg> st
-Status `~/Documents/Julia - VS code - how to/Project.toml`
-  [9b49b652] BioEnergeticFoodWebs v1.2.0 `https://github.com/PoisotLab/BioEnergeticFoodWebs.jl.git#dev-2.0.0`
-  [336ed68f] CSV v0.8.5
-  [a93c6f00] DataFrames v1.2.2
-  [0c46a032] DifferentialEquations v6.18.0
-  [31c24e10] Distributions v0.24.18
-  [f03a62fe] EcologicalNetworks v0.5.0
+Status `~/Documents/post-these/sheffield/julia_training/Project.toml`
+  [2fd9189a] BEFWM2 v0.1.0 `git@github.com:BecksLab/BEFWM2.git#develop`
+  [336ed68f] CSV v0.10.4
+  [a93c6f00] DataFrames v1.3.5
+  [31c24e10] Distributions v0.25.71
   [c91e804a] Gadfly v1.3.4
-  [033835bb] JLD2 v0.3.3
-  [91a5bcdd] Plots v1.22.6
-  [c3e4b0f8] Pluto v0.16.2
-  [ce6b1742] RDatasets v0.7.5
-  [2913bbd2] StatsBase v0.33.12
-  [f3b207a7] StatsPlots v0.14.28
-  [44d3d7a6] Weave v0.10.10
+  [91a5bcdd] Plots v1.33.0
+  [ce6b1742] RDatasets v0.7.7
+  [295af30f] Revise v3.4.0
   [8bb1440f] DelimitedFiles
   [9a3f8284] Random
-  [10745b16] Statistics
 ```
 
+"""
+
+# ╔═╡ 00000000-0000-0000-0000-000000000001
+PLUTO_PROJECT_TOML_CONTENTS = """
+[deps]
+"""
+
+# ╔═╡ 00000000-0000-0000-0000-000000000002
+PLUTO_MANIFEST_TOML_CONTENTS = """
+# This file is machine-generated - editing it directly is not advised
+
+julia_version = "1.8.0"
+manifest_format = "2.0"
+project_hash = "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+
+[deps]
 """
 
 # ╔═╡ Cell order:
@@ -215,3 +230,5 @@ Status `~/Documents/Julia - VS code - how to/Project.toml`
 # ╠═4cec8ef6-4eb5-11eb-0433-d317d947169c
 # ╟─5758fdfe-4eb5-11eb-0b1c-75ced9a8448a
 # ╟─9beac4dc-4eb5-11eb-1292-d550ce33df45
+# ╟─00000000-0000-0000-0000-000000000001
+# ╟─00000000-0000-0000-0000-000000000002
