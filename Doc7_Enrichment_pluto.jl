@@ -8,10 +8,10 @@ using InteractiveUtils
 import Pkg
 
 # ╔═╡ 7f18594b-a47b-4fd8-8eb1-2eea25df1e42
-Pkg.activate("")
+Pkg.activate(".")
 
 # ╔═╡ 1ab3bd81-3b00-4bce-a5e6-9f1830479ac4
-using BioEnergeticFoodWebs
+using BEFWM2 
 
 # ╔═╡ 06a9a46a-911c-4b63-b7f4-75de242ac241
 using Plots, Statistics, DataFrames
@@ -71,7 +71,7 @@ So in other words, logistic growth here is a function of the sum of the biomasse
 md"""
 ## Simulating enrichment in `BioEnergeticFoodWebs`
 
-To simulate enrichment, simply change the argument `K` in `model_parameters()`. Don't forget to change the `productivity` argument to control whether you want a system or species specific carrying capacity. 
+To simulate enrichment, simply change the argument `K` in `ModelParameters()`. Don't forget to change the `productivity` argument to control whether you want a system or species specific carrying capacity. 
 
 *Note*: In the following example, we are setting `h = 2.0` to use the type III functional response and avoid the collapse of the system that happens otherwise.
 """
@@ -80,19 +80,19 @@ To simulate enrichment, simply change the argument `K` in `model_parameters()`. 
 md"**Changing `K`:**"
 
 # ╔═╡ 008c1fc9-f108-47d2-882f-a19ea1c8b043
-A = [0 0 ; 0 0] #just 2 producers, without any consumer 
+A = FoodWeb([0 0 ; 0 0]) #just 2 producers, without any consumer 
 
 # ╔═╡ 3bc23436-ae76-4265-962a-4a06100e0b48
-Binit = ones(size(A,1)) #starting biomasses = 1
+Binit = ones(length(A.species)) #starting biomasses = 1
 
 # ╔═╡ 2d073c66-2663-4393-ab7a-ece02a49212a
-p_sys = model_parameters(A, K = [10.0], productivity = :system, h = 2.0) #system specific K = 10
+p_sys = ModelParameters(A, environment = Environment(A, K = 10.0), functional_response = BioenergeticResponse(A, h = 2.0)) #system specific K = 10
 
 # ╔═╡ 9f79bc19-cc1a-4f46-bb28-8fd9558f2d46
-s_sys = simulate(p_sys, Binit, stop = 500)
+s_sys = simulate(p_sys, Binit, tmax = 500);
 
 # ╔═╡ 84cb9b55-2ed8-4757-8e90-ecd4fd15a6fd
-p_sp = model_parameters(A, K = [10.0, 5.0], productivity = :species, h = 2.0) #species specific K_i = 5 (same for the two producers)
+p_sp = ModelParameters(A, environment = Environment(A, K = [10.0, 5.0]), functional_response = BioenergeticResponse(A, h = 2.0)) #species specific K_i = 5 (same for the two producers)
 
 # ╔═╡ e507fcd1-d238-41db-b236-406832bc1c63
 s_sp = simulate(p_sp, Binit, stop = 500)
@@ -102,8 +102,8 @@ md"In the first case (left) the 2 producer share a common K ($K = 10$) so each r
 
 # ╔═╡ f28e1a97-ee4e-4ad6-8fd0-b683135583ad
 begin
-	p1 = plot(s_sys[:t], s_sys[:B], legend = :outerright, title = L"K = 10", ylims = (0,10.1), labels = ["p1" "p2"], ylabel = "Species biomass", xlabel = "Time")
-	p2 = plot(s_sp[:t], s_sp[:B], legend = :outerright, title = L"K_i = [10, 5]", ylims = (0,10.1), labels = ["p1" "p2"], ylabel = "Species biomass", xlabel = "Time")
+	p1 = plot(s_sys, legend = :outerright, title = L"K = 10", ylims = (0,10.1), labels = ["p1" "p2"], ylabel = "Species biomass", xlabel = "Time")
+	p2 = plot(s_sp, legend = :outerright, title = L"K_i = [10, 5]", ylims = (0,10.1), labels = ["p1" "p2"], ylabel = "Species biomass", xlabel = "Time")
 	plt = plot(p1, p2, layout = grid(1,2), size = (750, 350))
 end
 
@@ -120,24 +120,27 @@ seed!(123)
 K_range = [1.0:1:40.0;] #range for carrying capacity
 
 # ╔═╡ f0e36660-d383-435c-9bc5-c19cd454c633
-Aniche = nichemodel(10, 0.15)
+Aniche = FoodWeb(nichemodel, 10, C = 0.15)
 
 # ╔═╡ e6932bc1-7c53-4eef-b4ef-f9909129b6af
-Binit_niche = rand(size(Aniche,1)) #starting biomasses
+Binit_niche = rand(length(Aniche.species)) #starting biomasses
 
 # ╔═╡ 78ee2505-6d4a-4edd-a5fb-e399cd42f1b8
 out_niche = [] #create an empty array to store the results
 
 # ╔═╡ 61817f68-b2bd-49bf-9420-e7c5b5fa2309
 for k in K_range
-	println(k)
-	pniche = model_parameters(Aniche, K = [k], productivity = :system, h = 1.2)
-	simniche = simulate(pniche, Binit_niche, stop = 500)
-	out = (B = total_biomass(simniche, last = 100)
-		 , P = species_persistence(simniche, last = 100)
-		 , G = sum(producer_growth(simniche, last = 100, out_type = :mean))
-		 , K = k)
-	push!(out_niche, out)
+    println(k)
+    pniche = ModelParameters(Aniche,
+                             environment = Environment(Aniche, K = k),
+                             functional_response = BioenergeticResponse(Aniche, h = 2) #, h = 1.2
+                            )
+    simniche = simulate(pniche, Binit_niche, tmax = 500, verbose = false)
+    out = (B = total_biomass(simniche, last = 100)
+           , P = species_persistence(simniche, last = 100)
+           , G = sum(producer_growth(simniche, last = 100, out_type = :mean).G)
+           , K = k)
+    push!(out_niche, out)
 end
 
 # ╔═╡ 40013ad6-459d-40dc-89d8-5fe6a7759e7f
@@ -145,11 +148,11 @@ df_niche = DataFrame(out_niche)
 
 # ╔═╡ 2e57c123-0807-4196-b48c-e00500257a71
 begin
-	pltB = scatter(df_niche.K, df_niche.B, title = "Total Biomass", xlab = L"K", c = :grey, legend = false, titlefontsize = 8, msw = 0, ms = 3)
-	pltG = scatter(df_niche.K, df_niche.G, title = "Total Net Growth G\n(mean over last 100 steps)", xlab = L"K", c = :grey, legend = false, titlefontsize = 8, msw = 0, ms = 3)
-	pltP = scatter(df_niche.K, df_niche.P, title = "Persistence", xlab = L"K", c = :grey, legend = false, ylims = (0,1), titlefontsize = 8, msw = 0, ms = 3)
+    pltB = scatter(df_niche.K, df_niche.B, title = "Total Biomass", xlab = L"K", c = :grey, legend = false, titlefontsize = 8, msw = 0, ms = 3)
+    pltG = scatter(df_niche.K, df_niche.G, title = "Total Net Growth G\n(mean over last 100 steps)", xlab = L"K", c = :grey, legend = false, titlefontsize = 8, msw = 0, ms = 3)
+    pltP = scatter(df_niche.K, df_niche.P, title = "Persistence", xlab = L"K", c = :grey, legend = false, ylims = (0,1), titlefontsize = 8, msw = 0, ms = 3)
 
-	plot(pltB, pltG, pltP)
+    Plots.plot(pltB, pltG, pltP)
 end
 
 # ╔═╡ cff69aff-8456-436b-90ba-d2652a037f18
