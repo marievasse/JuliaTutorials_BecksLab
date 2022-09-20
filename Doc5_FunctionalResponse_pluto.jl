@@ -8,7 +8,7 @@ using InteractiveUtils
 import Pkg
 
 # ╔═╡ a24bb9d0-4ce5-418e-a7e8-402d951e6136
-using BioEnergeticFoodWebs, EcologicalNetworks, CSV, Random, Plots, DataFrames, Statistics 
+using BEFWM2, EcologicalNetworks, CSV, Random, Plots, DataFrames, Statistics 
 
 # ╔═╡ 339cd854-3247-11ec-3995-1d6205a38a71
 md"# Functional Response 
@@ -116,14 +116,14 @@ Pkg.status()
 md"
 You should see the following:
 
-`[9b49b652] BioEnergeticFoodWebs v1.2.0 https://github.com/PoisotLab/BioEnergeticFoodWebs.jl.git#dev-2.0.0` 
+`[2fd9189a] BEFWM2 v0.1.0 `git@github.com:BecksLab/BEFWM2.git#develop`
 
-which details the current developmental branch of the BEFW model. This version contains all the additional code and functionality needed to use the `:classical` functional response and incorporate the effects of temperature and enrichment. If you don't see the above, quickly remove the older version (probably v.1.2.0, i.e. without the #dev-2.0.0) using `Pkg.rm('BioEnergeticFoodWebs')` and reinstall using `Pkg.add('BioEnergeticFoodWebs#dev-2.0.0')`. Remember, you can also enter the package manager directly using `]` key. 
+which details the current developmental branch of the BEFW model. This version contains all the additional code and functionality needed to use the `:classical` functional response and incorporate the effects of temperature and enrichment. If you don't see the above, quickly remove the older version (probably v.1.2.0, i.e. without the #dev-2.0.0) using `Pkg.rm('BioEnergeticFoodWebs')` and reinstall using `Pkg.add(url='git@github.com:BecksLab/BEFWM2.git', rev='develop')`. Remember, you can also enter the package manager directly using `]` key. 
 "
 
 # ╔═╡ dd9bfef0-aa6e-431b-84f6-7aa49b8d6640
 md"""
-## Using `:bioenergetic`
+## Using `BioenergeticResponse()`
 """
 
 # ╔═╡ 27c9a18c-f790-4c0f-9b19-37166dab1961
@@ -136,11 +136,11 @@ A = [0 1 0 0 ; 0 0 1 1 ; 0 0 0 0 ; 0 0 0 0]
 
 # ╔═╡ 7c4c088d-fd0f-415f-99ab-39f67e36f96f
 md"
-fix parameters using `model_parameters`:
+fix parameters using `ModelParameters`:
 "
 
 # ╔═╡ b9f4167e-6525-4016-888b-d9dea633120a
-p_bio = model_parameters(A, functional_response = :bioenergetic, h = 1.0)
+p_bio = ModelParameters(FoodWeb(A), functional_response = BioenergeticResponse(FoodWeb(A), h = 1.0))
 
 # ╔═╡ 05fb2839-6aff-47d6-b22c-f0583cacd6c1
 md"
@@ -155,13 +155,13 @@ We then define some initial biomasses `b0`, simulate and plot:
 # ╔═╡ 3668ff94-80a9-4fa9-9996-5dfbd23cb502
 begin
 	b0 = rand(size(A,1))
-	sim_bio = simulate(p_bio, b0, stop = 500)
-	plot(sim_bio[:t], sim_bio[:B], xlabel = "time", ylabel = "species biomass", ylims = (0,1.1))
+	sim_bio = simulate(p_bio, b0, tmax = 500)
+	plot(sim_bio, xlabel = "time", ylabel = "species biomass", ylims = (0,1.1))
 end
 
 # ╔═╡ eff83b1e-a95d-47d9-938b-ffcf62a3b44c
 md"""
-## Using `:classical`
+## Using `ClassicResponse()`
 """
 
 # ╔═╡ 1a8f2cb4-6871-4719-8759-717e51060c48
@@ -170,7 +170,7 @@ Fix parameters:
 "
 
 # ╔═╡ 102fa995-ec03-4cc1-bd53-e6f72a797e8e
-p_classical = model_parameters(A, functional_response = :classical, h = 2.0)
+p_classical = ModelParameters(FoodWeb(A), functional_response = ClassicResponse(FoodWeb(A), h = 2.0))
 
 # ╔═╡ 77b7e524-1d18-4fb2-a608-19b4430f60ae
 md"
@@ -179,8 +179,8 @@ here we're using a type III functional response (`h = 2.0`), we then simulate an
 
 # ╔═╡ d2321fc7-fa43-4248-9e76-033e4cd05b13
 begin
-	sim_classical = simulate(p_classical, b0, stop = 500)
-	plot(sim_classical[:t], sim_classical[:B], xlabel = "time", ylabel = "species biomass", ylims = (0,1.1)) # Dynamics are much more stable!
+	sim_classical = simulate(p_classical, b0, tmax = 500)
+	plot(sim_classical, xlabel = "time", ylabel = "species biomass", ylims = (0,1.1)) # Dynamics are much more stable!
 end
 
 # ╔═╡ 5477f137-eaa2-4427-91b6-08e3ebed313a
@@ -262,23 +262,25 @@ We then use nested `for` loops to loop over our experimental design, `simulate` 
 
 # ╔═╡ b4be2fe7-f8b8-4835-bb29-ad5d259cf864
 for f in fr_type
-	for z in mass_ratio
-		for (i, a) in enumerate(networks)
-			# fix model parameters
-			p = model_parameters(a, h = f.h, c = [f.c], Z = z, functional_response = :bioenergetic)
-			# provide some initial biomasses
-			bio = rand(size(a,1))
-			# simulate
-			s = simulate(p, bio, stop = 1000)
-			# calculate outputs
-			out = (fr = f.name, Z = z, id = i, cv = population_stability(s, last = 250), persistence = species_persistence(s, last = 250), biomass = total_biomass(s, last = 250))
-			# push! to store
-			push!(df_outputs, out)
-			# print some stuff - see how the simulation is progressing
-			fr = f.name
-        	println(("fr = $fr", "Z = $z", "network = $i"))
-		end
-	end
+    for z in mass_ratio
+        for (i, a) in enumerate(networks)
+            # fix model parameters
+            p = ModelParameters(FoodWeb(a, Z = z), functional_response = BioenergeticResponse(FoodWeb(a), h = f.h, c = f.c));
+            # provide some initial biomasses
+            bio = rand(size(a,1));
+            # simulate
+            s = simulate(p, bio, tmax = 1000, verbose=false);
+            # calculate outputs
+            # @show length(s.t)
+            # @show population_stability(s, last = 50)
+            out = (fr = f.name, Z = z, id = i, cv = population_stability(s, last = 50), persistence = species_persistence(s, last = 50), biomass = total_biomass(s, last = 50))
+            #push! to store
+            push!(df_outputs, out)
+            #print some stuff - see how the simulation is progressing
+            fr = f.name
+            println(("fr = $fr", "Z = $z", "network = $i"))
+        end
+    end
 end
 
 # ╔═╡ 96fb06b9-7264-4859-b480-795d5304c889

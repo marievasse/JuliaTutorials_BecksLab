@@ -203,9 +203,9 @@ begin
 	# set K (has to be a floating number not an integer)
 	K = 5.0 
 	# create model parameters
-        p_K = ModelParameters(FoodWeb(A.A, Z = Z), environment = Environment(FoodWeb(A.A), K = K)) # K needs to be provided in []'s
+        p_K = ModelParameters(FoodWeb(A.A, Z = Z), environment = Environment(FoodWeb(A.A), K = K))
 	# assign biomasses
-	bm_K = rand(length(A.species)) 
+	bm_K = rand(length(A.species))
 	# simulate
 	out_K = simulate(p_K, bm_K, tmax=2000)
 	# plot
