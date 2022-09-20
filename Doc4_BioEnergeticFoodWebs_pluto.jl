@@ -5,7 +5,7 @@ using Markdown
 using InteractiveUtils
 
 # ╔═╡ 58837362-4ea9-11eb-203b-c1ddc9983e1c
-using BioEnergeticFoodWebs, EcologicalNetworks, JLD2, Statistics, Plots, CSV, DataFrames, Random
+using BEFWM2, EcologicalNetworks, JLD2, Statistics, Plots, CSV, DataFrames, Random
 
 # ╔═╡ c0ebcd72-4185-11eb-1f7a-495100d90da7
 md"# Intro to BioEnergeticFoodWebs
@@ -66,14 +66,15 @@ Before running the BEFW model, we have to construct an initial random network (a
 
 # ╔═╡ e07fb471-43e2-4a45-b93b-5ebd079b5e69
 # generate network
-A_bool = EcologicalNetworks.nichemodel(20,0.15)
+A = FoodWeb(nichemodel, 20, C = 0.15)
 
 # ╔═╡ 17bbecf7-d8ae-4bda-9cf2-66507ac26ddc
-# convert the UnipartiteNetwork object into a matrix of 1s and 0s
-Ad = adjacency(A_bool)
+# Extract the sparse matrix 
+Ad = A.A 
 
 # ╔═╡ 9d4dc490-43f2-4d1f-b7eb-6b33c0a14e76
-A = Int.(Ad)
+# Get matrix values from boolean in Integer
+Aa = Int.(Ad)
 
 # ╔═╡ c8ca2428-654b-11eb-3f37-b112b0a6192c
 md"
@@ -85,7 +86,7 @@ md"You can check the connectance of A using:"
 
 # ╔═╡ cec73ec2-4eaa-11eb-223d-c3f6707a8ba3
 # calculate connectance
-co = sum(A)/(size(A,1)^2)
+co = sum(Aa)/(size(Aa,1)^2)
 
 # ╔═╡ a408e704-654c-11eb-27fc-2933d9e9515f
 md"
@@ -95,21 +96,21 @@ Here, connectance is calculated as the number of realised links (sum of 1s in `A
 # ╔═╡ d332dcee-4eaa-11eb-0cf5-33bd128825cd
 md"### Parameters
 
-Prior to running the BEFW model, you have to create a vector of model parameters using the `model_parameters` function. Numerous parameter values can be specified within the `model_parameters` function, however, most of them have default values that are built into the `BioEnergeticFoodWebs.jl` package. For simplicity, we use the default values here:"
+Prior to running the BEFW model, you have to create a vector of model parameters using the `ModelParameters` function. Numerous parameter values can be specified within the `ModelParameters` function, however, most of them have default values that are built into the `BEFWM2.jl` package. For simplicity, we use the default values here:"
 
 # ╔═╡ f1213a72-4eaa-11eb-2117-49e624afa4fe
 # create model parameters
-p = model_parameters(A)
+p = ModelParameters(A)
 # in the most simple case, the model_parameters function simply requires A
 
 # ╔═╡ f9545abc-4eaa-11eb-3ef5-a7c1f1d61b62
-md"For more information and a full list of the parameters and their defaults values type `?model_parameters` in the REPL. 
+md"For more information and a full list of the parameters and their defaults values type `?ModelParameters` in the REPL. 
 
 If you want to view, check or extract any of the parameter values in `p` use the `p[:name]` notation. For example, you can view a vector of each species' trophic rank using:"
 
 # ╔═╡ c2f6b62c-654d-11eb-18c8-fde307cc05b1
-# view trophic ranks:
-p[:trophic_rank]
+# view metabolic class:
+p.network.metabolic_class
 
 # ╔═╡ ab12997a-50ff-11eb-03a6-d952acc44eba
 md"### Simulate
@@ -117,27 +118,37 @@ To run the BEFW model, we first assign biomasses at random to each species and t
 
 # ╔═╡ e88c8d09-0cf8-483f-aeae-32ff5befee7c
 # assign biomasses
-bm = rand(size(A,1))
+bm = rand(length(A.species))
 
 # ╔═╡ 79019791-822b-4ea4-976b-4188d9af0a4c
 # simulate
-out = simulate(p, bm, start=0, stop=2000)
+out = simulate(p, bm, tmax=2000)
 # this might take a few seconds
 
 # ╔═╡ 94947bdc-4eac-11eb-0659-afb90ebc53db
-md"The `simulate` function requires the model parameters `p` and the species biomasses `bm`. In addition, you can specify the timespan of the simulation (using the `start` and `stop` arguments), fix a species extinction threshold (using `extinction_threshold`) and select a solver (using `use`). For more information type `?simulate` in the REPL. "
+md"The `simulate` function requires the model parameters `p` and the species biomasses `bm`. In addition, you can specify the timespan of the simulation (using the `start` and `tmax` arguments), fix a species extinction threshold (using `extinction_threshold`) and select a solver (using `use`). For more information type `?simulate` in the REPL. "
 
 # ╔═╡ 590f9e6a-4ead-11eb-31f1-2718dd772637
 md"### Output and plot
-Once the simulation finishes, the output is stored as a dictionary called `out`. Within `out` there are three entries:
-1. `out[:p]` - lists the parameters
-2. `out[:B]` - biomass of each species through time
-3. `out[:t]` - timesteps (these typically increase in 0.25 intervals)
+Once the simulation finishes, the output is stored as a `solution` object, which is the output returned by `solve()` from the `DifferentialEquations.jl` package. 
+Information on how is structured this object is found at [the package documentation](https://diffeq.sciml.ai/stable/basics/solution/#solution).
+Basically, solution are stored with species in rows and timesteps in columns:  
+1. out[:,1] for the first timestep  (you can check that out[:,1] == bm)
+1. out[1,:] for the timeseries of the first species 
+1. out.u stores the vectors of the species biomass at each timestep such as out[:,1] == out.u[1] == bm
+1. out.t contains the time values at each time step
 
-The biomass dynamics of each species can then be plotted. Similar to the `DifferentialEquations.jl` package, the `BioEnergeticFoodWebs.jl` package also has it's own built in plotting recipe:"
+The biomass dynamics of each species can then be plotted. We currently use the plotting recipe of the `DifferentialEquations.jl` package:"
 
 # ╔═╡ 66608f69-6100-4216-9264-c8a2f4c4f46f
-plot(out[:t],out[:B], legend = true, ylabel = "Biomass", xlabel = "Time")
+begin
+    # Building labels
+    vc = [1:1:size(out, 1);]
+    vr = reshape(vc, 1, length(vc))
+    vs = map(string, vr)
+    # Make the plot
+    p = plot(out, density = 1000, ylabel = "Biomass", xlabel = "Time", label =  "s".*vs)
+end
 
 # ╔═╡ 6ffe793e-5100-11eb-1b27-a7c18b6a0130
 md"You'll notice that the biomass dynamics are noisey during the first few hundred time steps, these are the system's transient dynamics. The dynamics then settle into a steady state where the system can be assumed to be at equilbirum. You'll also notice that some species go extinct and some persist, the initial number of species in the food web (20 in this case) can found using `out[:p][:S]` and the identity of those that went extinct using `out[:p][:extinctions]`. 
@@ -175,13 +186,13 @@ begin
 	# set Z (has to be a floating number not an integer)
 	Z = 10.0
 	# create model parameters
-	p_z = model_parameters(A, Z = Z)
+	p_z = ModelParameters(FoodWeb(A.A, Z = Z))
 	# assign biomasses
-	bm_z = rand(size(A,1))
+        bm_z = rand(length(A.species))
 	# simulate
-	out_z = simulate(p_z, bm_z, start=0, stop=2000)
+	out_z = simulate(p_z, bm_z, tmax=2000)
 	# plot
-	plot(out_z[:t], out_z[:B], legend = true, ylabel = "Biomass", xlabel = "Time")
+	plot(out_z, legend = true, ylabel = "Biomass", xlabel = "Time")
 end
 
 # ╔═╡ 04bce3aa-5101-11eb-1fd0-4bb18e4dcbf1
@@ -192,13 +203,13 @@ begin
 	# set K (has to be a floating number not an integer)
 	K = 5.0 
 	# create model parameters
-	p_K = model_parameters(A, Z = Z, K = [K]) # K needs to be provided in []'s
+        p_K = ModelParameters(FoodWeb(A.A, Z = Z), environment = Environment(FoodWeb(A.A), K = K)) # K needs to be provided in []'s
 	# assign biomasses
-	bm_K = rand(size(A,1)) 
+	bm_K = rand(length(A.species)) 
 	# simulate
-	out_K = simulate(p_K, bm_K, start=0, stop=2000)
+	out_K = simulate(p_K, bm_K, tmax=2000)
 	# plot
-	Plots.plot(out_K[:t], out_K[:B], legend = true, ylabel = "Biomass", xlabel = "Time")
+	plot(out_K, legend = true, ylabel = "Biomass", xlabel = "Time")
 end
 
 # ╔═╡ 2f1c8dba-5101-11eb-2290-4dddd6bf44ef
@@ -209,7 +220,7 @@ Quick note - the `begin` and `end` used in the above code chunks and those that 
 # ╔═╡ 351c26a0-5101-11eb-1061-cb8cb0bc4c5b
 md"
 
-## Experiments 
+## Experiments
 The next step is to construct a computional experiment designed to investigate the effect of different variables on population and community dynamics. To do this we construct a gradient of variables as vectors and then simulate the BEFW model multiple times using a loop. To illustrate this, we're going to reproduce example 1 from [Delmas et al. 2016](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.12713). The aim of this example is to investigate the effect of increasing K on food web diversity. In addition, we're also going to allow α (interspecific competition relative to intraspecific competition) to vary and repeat the experiment 5 times with 5 different initial networks.
 
 First, we define the experiment by creating vectors of our variables and fixing the number of repetitions:
@@ -251,7 +262,7 @@ begin
 	    # generate network
 	    A_bool = EcologicalNetworks.nichemodel(20,0.15) 
 	    # convert the UnipartiteNetwork object into a matrix of 1s and 0s
-		Ad = adjacency(A_bool)
+            Ad = adjacency(A_bool)
 	    A = Int.(Ad)
 	    # calculate connectance
 	    co = sum(A)/(size(A,1)^2)
