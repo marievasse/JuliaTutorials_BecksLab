@@ -28,7 +28,8 @@ end
 import Pkg
 Pkg.activate(".")
 
-Pkg.add(url="git@github.com:BecksLab/BEFWM2.git", rev="develop")
+] dev /home/alain/Documents/post-these/sheffield/BEFWM2/
+#Pkg.add(url="git@github.com:BecksLab/BEFWM2.git", rev="develop")
 Pkg.add(["Revise", "Plots", "DataFrames", "Distributions", "Random", "DelimitedFiles", "RDatasets", "Gadfly", "CSV"])
 ```
 

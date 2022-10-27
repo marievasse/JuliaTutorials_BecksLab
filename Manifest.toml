@@ -2,7 +2,7 @@
 
 julia_version = "1.8.0"
 manifest_format = "2.0"
-project_hash = "59d7a44c5fefe10411ee7c70cf20e5ff7d09909e"
+project_hash = "2066996a3bac1b0fbaf1683f69f4160f4f1f4ce2"
 
 [[deps.AbstractFFTs]]
 deps = ["ChainRulesCore", "LinearAlgebra"]
@@ -79,9 +79,7 @@ version = "1.0.1"
 
 [[deps.BEFWM2]]
 deps = ["DiffEqBase", "DiffEqCallbacks", "DifferentialEquations", "EcologicalNetworks", "Mangal", "OrderedCollections", "SparseArrays", "Statistics"]
-git-tree-sha1 = "b2f9b31a2b0866cc66ebdbd8fe6d4355e33749fd"
-repo-rev = "develop"
-repo-url = "git@github.com:BecksLab/BEFWM2.git"
+path = "/home/alain/Documents/post-these/sheffield/BEFWM2/"
 uuid = "2fd9189a-c387-4076-88b7-22b33b5a4388"
 version = "0.1.0"
 
@@ -289,6 +287,12 @@ version = "1.0.0"
 deps = ["Printf"]
 uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
 
+[[deps.Debugger]]
+deps = ["CodeTracking", "Crayons", "Highlights", "InteractiveUtils", "JuliaInterpreter", "Markdown", "REPL"]
+git-tree-sha1 = "2e1376ac793d255c8a312a99b961ef64ae60ffee"
+uuid = "31a5f54b-26ea-5ae9-a837-f05ce5417438"
+version = "0.7.6"
+
 [[deps.DelayDiffEq]]
 deps = ["ArrayInterface", "DataStructures", "DiffEqBase", "LinearAlgebra", "Logging", "NonlinearSolve", "OrdinaryDiffEq", "Printf", "RecursiveArrayTools", "Reexport", "SciMLBase", "UnPack"]
 git-tree-sha1 = "5acc7807b906d6a938dfeb965a6ea931260f054e"
@@ -307,9 +311,9 @@ version = "0.4.0"
 
 [[deps.DiffEqBase]]
 deps = ["ArrayInterfaceCore", "ChainRulesCore", "DataStructures", "Distributions", "DocStringExtensions", "FastBroadcast", "ForwardDiff", "FunctionWrappers", "FunctionWrappersWrappers", "LinearAlgebra", "Logging", "MuladdMacro", "NonlinearSolve", "Parameters", "Printf", "RecursiveArrayTools", "Reexport", "Requires", "SciMLBase", "Setfield", "SparseArrays", "Static", "StaticArrays", "Statistics", "Tricks", "ZygoteRules"]
-git-tree-sha1 = "09d39361dd1f1dea55dd4b5ce22855134c795365"
+git-tree-sha1 = "ff3b0abda9ee27c36019fffce8aca4394505e503"
 uuid = "2b5f629d-d688-5b77-993f-72d75c75574e"
-version = "6.104.1"
+version = "6.104.2"
 
 [[deps.DiffEqCallbacks]]
 deps = ["DataStructures", "DiffEqBase", "ForwardDiff", "LinearAlgebra", "Markdown", "NLsolve", "Parameters", "RecipesBase", "RecursiveArrayTools", "SciMLBase", "StaticArrays"]
@@ -434,9 +438,9 @@ version = "0.3.2"
 
 [[deps.FastLapackInterface]]
 deps = ["LinearAlgebra"]
-git-tree-sha1 = "cfd9d0dbb947181644c00bd7e988b4bb30a5b2a5"
+git-tree-sha1 = "14a6f7a21125f715d935fe8f83560ee833f7d79d"
 uuid = "29a986be-02c6-4525-aec4-84b980013641"
-version = "1.2.6"
+version = "1.2.7"
 
 [[deps.FileIO]]
 deps = ["Pkg", "Requires", "UUIDs"]
@@ -605,6 +609,12 @@ git-tree-sha1 = "de4a6f9e7c4710ced6838ca906f81905f7385fd6"
 uuid = "a1b4810d-1bce-5fbd-ac56-80944d57a21f"
 version = "0.2.0"
 
+[[deps.Highlights]]
+deps = ["DocStringExtensions", "InteractiveUtils", "REPL"]
+git-tree-sha1 = "0341077e8a6b9fc1c2ea5edc1e93a956d2aec0c7"
+uuid = "eafb193a-b7ab-5a9e-9068-77385905fa72"
+version = "0.5.2"
+
 [[deps.HostCPUFeatures]]
 deps = ["BitTwiddlingConvenienceFunctions", "IfElse", "Libdl", "Static"]
 git-tree-sha1 = "b7b88a4716ac33fe31d6556c02fc60017594343c"
@@ -741,9 +751,9 @@ version = "0.6.5"
 
 [[deps.Krylov]]
 deps = ["LinearAlgebra", "Printf", "SparseArrays"]
-git-tree-sha1 = "a2327039e1c84615e22d662adb3df113caf44b70"
+git-tree-sha1 = "92256444f81fb094ff5aa742ed10835a621aef75"
 uuid = "ba0b0d4f-ebba-5204-a429-3ac8c609bfb7"
-version = "0.8.3"
+version = "0.8.4"
 
 [[deps.KrylovKit]]
 deps = ["LinearAlgebra", "Printf"]
@@ -1005,10 +1015,10 @@ uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 version = "1.2.0"
 
 [[deps.NonlinearSolve]]
-deps = ["ArrayInterfaceCore", "FiniteDiff", "ForwardDiff", "LinearAlgebra", "RecursiveArrayTools", "Reexport", "SciMLBase", "Setfield", "StaticArrays", "UnPack"]
-git-tree-sha1 = "12ea26dc2d8d8f6773bccfe7e616b129b9705380"
+deps = ["ArrayInterfaceCore", "FiniteDiff", "ForwardDiff", "IterativeSolvers", "LinearAlgebra", "RecursiveArrayTools", "RecursiveFactorization", "Reexport", "SciMLBase", "Setfield", "StaticArrays", "UnPack"]
+git-tree-sha1 = "a754a21521c0ab48d37f44bbac1eefd1387bdcfc"
 uuid = "8913a72c-1f9b-4ce2-8d82-65094dcecaec"
-version = "0.3.23"
+version = "0.3.22"
 
 [[deps.OffsetArrays]]
 deps = ["Adapt"]
