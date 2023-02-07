@@ -4,17 +4,23 @@ project:
 
 website:
   title: "Julia Tutorials for BEFWM2"
-  navbar:
-    left:
-      - href: index.qmd
-        text: Home
-      - about.qmd
-      - Tutorial-1_Downloads, Setups and Your First Project.qmd
-      - Tutorial-2_Using Julia for Maths and Vector Stuff.qmd
-      - Tutorial-3_Building and Working with DataFrames.qmd
-      - Tutorial-4_Programming Basics.qmd
-      - Tutorial-5_Plotting in Julia.qmd
-      - Tutorial-6_Extra Tips and Tricks.qmd
+  sidebar:
+    style: "docked"
+    search: true
+    contents:
+      - section: "Setting Up"
+        contents:
+          - index.qmd
+          - Tutorial-1_Downloads, Setups and Your First Project.qmd
+      - section: "Basic Calculations and Objects"
+        contents:
+          - Tutorial-2_Using Julia for Maths and Vector Stuff.qmd
+          - Tutorial-3_Building and Working with DataFrames.qmd
+      - section: "Programming, Plotting and Extra Tips"
+        contents:
+          - Tutorial-4_Programming Basics.qmd
+          - Tutorial-5_Plotting in Julia.qmd
+          - Tutorial-6_Extra Tips and Tricks.qmd
 
 format:
   html:
