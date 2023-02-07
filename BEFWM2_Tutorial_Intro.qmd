@@ -2,6 +2,19 @@
 title: "Julia and the BEFWM2 using VSCode"
 date: now
 author: "Danet and Becks, based on originals by Delmas and Griffiths"
+
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "today"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - about.qmd
+
 format:
     html:
         embed-resources: true
