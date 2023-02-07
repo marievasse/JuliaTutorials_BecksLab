@@ -1,0 +1,32 @@
+---
+title: "Julia and the BEFWM2 using VSCode"
+date: now
+author: "Danet and Becks, based on originals by Delmas and Griffiths"
+format:
+    html:
+        embed-resources: true
+title-block-banner: true
+---
+
+## Welocome to the Tutorials
+
+This set of tutorials is designed to help you use an integrated coding tool, VSCode, to run experiments with the Bioenergetic Foodweb Model, built in the coding language Julia.
+
+It will cover four core objectives
+
+1. acquire/install the `Julia` programming language, the Integrated Development Environment called `VSCode`, and the `Bioenergetic Food Web Model` written in the Julia programming language.
+2. Learn how to work with `Julia` programming, from installing packages to understanding arithmetic and plotting and data frames
+3. Learn how to simulate a simple predator-prey (consumer-resource) model using the `DifferentialEquations` package in Julia
+4. Learn how to implement and use the multi-species `BioenergeticFoodWebModel` in Julia
+
+Having done these, you will then be introduced to further complexities and opportunties.
+
+### Moving from R and RStudio to Julia and VSCode
+
+If you are a user of **R** and **RStudio**, you are likely familiar with setting **RStudio** and **R** up to use a project file, the `.RProject` inside a project folder.  You are also used to downloading and installing packages into R on your computer, and then invoking their use in each script using the `library()` function.
+
+In the world of **VSCode** and **Julia**, we do something similar.  You will create project folders, just like we recommend for **R**.  Inside this folder, two files will be created, the `Project.toml` and the `Manifest.toml`.  These are not really the same as the .`RProject` file.  In **Julia**, each project has a set of packages that are associated with it.  This is different from the more 'global' installation of packages in **R**.
+
+There are some parallels...  first, adding packages in **Julia** uses the `Pkg` toolbox and gets them from the [Julia Language Ecosystem](https://julialang.org/packages/).  This is like downloading them from CRAN for **R**.  Second, making packages available for use in a **Julia** script requires the `using` function, which is a lot like the `library()` function.
+
+Anyhow, the goal IS to try and make a workflow for **Julia** and **VSCode** that acts like the **R** and **RStudio** setup you are familiar with.

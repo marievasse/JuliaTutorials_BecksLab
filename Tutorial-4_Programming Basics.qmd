@@ -1,0 +1,388 @@
+---
+title: "Tutorial 4: The Basics of Programming"
+date: now
+author: "Danet and Becks, based on originals by Delmas and Griffiths"
+format:
+    html:
+        embed-resources: true
+title-block-banner: true
+jupyter: julia-1.8
+---
+
+```{julia}
+#| echo: false
+using DataFrames, StatsPlots, Plots, Random
+```
+
+This section of the tutorials introduces programming basics, including the art of simple functions, positional arguments, keyword arguments, loops, if-else-break usage and continue-while usage.
+
+It is important to note that if you have experience programming R, there is a major difference in Julia - the use of loops is very much advocated in Julia where as _vectorising_ loops is advocated in R.
+
+Basically, we write loops in Julia.  We try to avoid them in R, if we want speed.
+
+## Functions
+
+Functions work exactly like they do in R, however, there are three fundamental differences:
+
+- there is no need for {} brackets (thank god)
+- indenting (Julia requires seperate parts of a function to be indented - don't worry, VS Code should do this for you)
+- scoping (we'll attempt to explain this later)
+- functions always start with the word `function` and end with the word `end`. 
+-to store something that is calculated in a function, you use the `return` command.
+
+Let's begin with a simple function - adding 2 to any number
+
+```{julia}
+function plus_two(x)
+    return(x+2)
+end
+```
+
+Let's use it now by providing an defining and x value, and asking for the function to return the new value.
+
+```{julia}
+x_in = 33
+x_out = plus_two(x_in)
+```
+
+Because we've defined `x_out`, we can request it...
+
+```{julia}
+x_out
+```
+
+### Positional Arguments
+
+As in **R**, input variables for functions have a specified and fixed order unless they have a default value which is explictly specified. For instance, we can build a function that measures body weight on different planets, but defaults to estimating weight on earth with a gravitational force of 9.81:
+
+```{julia}
+function bodyweight(BW_earth, g = 9.81)
+    # bw should be in kg.
+    return BW_earth*g/9.81
+end
+```
+
+Note that the function is called bodyweight, it requires in the first position a weight in kg on earth and then defaults to estimating weight on earth by using g = 9.81
+
+```{julia}
+bodyweight(75)
+```
+
+Now, if we want to estimate they same bodyweight on Mars, where gravit is 3.72, you can specify the g-value.
+
+```{julia}
+bodyweight(75, 3.72)
+```
+
+### Keyword Arguments
+
+```{julia}
+# function with keyword arguments:
+# here, b and d are fixed = 2
+# a is positional
+# c is a keyword argument
+# the addition of ; before c means that c is an keyword argument and can be specified in any order, but must be named
+function key_word(a, b=2; c, d=2) 
+    return a + b + c + d
+end
+```
+
+Here we specify _position_ 1 (a) and that c = 3
+```{julia}
+key_word(1, c = 3)
+```
+
+Here we specify c = 3, and then position 1
+```{julia}
+key_word(c=3, 1)
+```
+
+Here we specify position 1 (a), redefine position 2 (b = 6) and declare c = 7.
+
+```{julia}
+key_word(1, 6, c=7)
+```
+
+Note that this DOES NOT work, because we've failed to define c. (and or b)
+
+```{julia}
+#| error: true
+key_word(1, 8, d=4)
+```
+
+To redfine d, you'd need to define c and d.
+
+```{julia}
+key_word(1, c = 8, d = 4)
+```
+
+
+## Loops
+
+### For loops
+For loops work by iterating over a specified range (e.g. 1-10) at specified intervals (e.g. 1,2,3...). For instance, we might use a for loop to fill an array:
+
+#### Filling an array
+To fill an array, we first define an object as an array using `[]`.  
+
+```{julia}
+I_array = []
+```
+
+Like with function, all loops start with `for` and end with `end`.  Here we iteratively fill `I_array` with 1000 random selections of 1 or 2.
+
+```{julia}
+# for loop to fill an array:
+for i in 1:1000
+    # pick from the number 1 or 2 at random 
+    # for each i'th step
+    for_test = rand((1,2)) 
+    # push! and store for_test in I_array2
+    # Julia is smart enough to do this iteratively
+    # you don't neccessarily have to index by `[i]` like you might do in R
+    push!(I_array, for_test) 
+end
+```
+
+Let's look at I_array now
+
+```{julia}
+I_array
+```
+
+Let's try something more complex, iterating over multiple indices
+
+A new storage container:
+
+```{julia}
+tab = []
+```
+
+Now, we fill the storage container with values of i, j and k.  Can you tell which in which order this will happen?  The first entry will be `[1,1,1]`.  The second will be `[2,1,1]`.  Do you understand why? Mess around to check.
+
+```{julia}
+# nested for loop to fill an array:
+for k in 1:4
+    for j in 1:3
+        for i in 1:2
+            append!(tab,[[i,j,k]]) # here we've use append! to allocate iteratively to the array as opposed to using push! - both work. 
+        end
+    end
+end
+```
+
+Let's look...
+
+```{julia}
+tab
+```
+
+We can also allocate to a multiple dimensional matrix.  When working with matrices, we can build them out of zeros and the replace the values.
+
+Here we start with a three dimensional array with 4 two x three matrices.
+
+```{julia}
+threeDmatrix = zeros(2,3,4)
+```
+
+Now, let's do a nested loop again, but this time into the matrices.  The element we are adding each iteration is the sum of i+j+k.
+
+Can you guess how this works?
+
+```{julia}
+for k in 1:4
+    for j in 1:3
+        for i in 1:2
+            # note default is by column....
+            # first element allocated is 1+1+1, then 2+1+1 and this is first col
+            # then 1+2+1 and 2+2+1 into the second col
+            # then 1+3+1 and 2+3+1 into the third col
+            threeDmatrix[i,j,k] = i+j+k
+        end
+    end
+end
+```
+
+```{julia}
+threeDmatrix
+```
+
+Finally, note that we can use `println` to provide a basic marker what what is happening: we show two ways to do this in the code.
+
+```{julia}
+#| eval: false
+for k in 1:4
+    for j in 1:3
+        for i in 1:2
+            #println(i,"-",j,"-",k) # multiple quotes
+            println("$i-$j-$k") # one quote, $ to grab variables
+            
+            # note default is by column....
+            # first element allocated is 1+1+1, then 2+1+1 and this is first col
+            # then 1+2+1 and 2+2+1 into the second col
+            # then 1+3+1 and 2+3+1 into the third col
+            threeDmatrix[i,j,k] = i+j+k
+        end
+    end
+end
+```
+
+And just for fun... this `println` trick can be handy for verbose tracking.  Note how `person in unique(persons)` iterates and how you can embed a variable's value in a text string.
+
+```{julia}
+persons = ["Alice", "Alice", "Bob", "Bob2", "Carl", "Dan"]
+
+for person in unique(persons)
+    println("Hello $person")
+end
+```
+
+There are tons of different functions that can be helpful when building loops. Take a few minutes to look into the help files for `eachindex`, `eachcol`, `eachrow` and `enumerate`. They all provide slightly different ways of telling Julia how you want to loop over a problem. Also, remember that loops aren't just for allocation, they can also be very useful when doing calculations.
+
+### if, else, breaks
+When building a loop, it is often meaningful to stop or modify the looping process when a certain condition is met. For example, we can use the `break`, `if` and `else` statements to stop a for loop when i exceeds a given value (e.g. 10):
+
+```{julia}
+# if and break:
+for i in 1:100
+    println(i) # print i
+    if i >10
+        break # stop the loop with i >10
+    end   
+end
+```
+
+```{julia}
+# this loop can be modified using an if-else statement:
+# even though we are iterating to 100, it stops at 10.
+for j in 1:100
+    if j >10
+        break # stop the loop with i >10
+    else
+        crj = j^3
+        println("J is = $j") # print i
+        println("The Cube of $j is $crj")
+    end
+end
+```
+
+You'll notice that every statement requires it's own start )`for` and `end` points, and is indented as per Julia's requirements. `if` and `else` statements can be very useful when building experiments: for example we might want to stop simulating a network's dynamics if more than 50% of the species have gone extinct.
+
+### continue and while
+
+#### continue
+The `continue` command is the opposite to `break` and can be useful when you want to skip an iteration but not stop the loop:
+
+```{julia}
+for i in 1:30
+    # this reads: is it false that i is a multiple of 3?
+    if i % 3 == false
+        continue # makes the loop skip iterations that are a multiple of 3
+    else println("$i is not a multiple of 3")
+    end
+end
+```
+
+Can you figure out what the code would be for keeping even numbers only? Note the change of logic from false above to true here.
+
+```{julia}
+for i in 1:10
+    # where is it true that i is a multiple of 2?
+    if i % 2 == true
+        continue # makes the loop skip iterations that are odd
+    else println("$i is even")
+    end
+end
+```
+
+#### while
+
+`while` loops provide an alternative to `for` loops and allow you to iterate until a certain condition is met:
+
+```{julia}
+# counter that is globally scoped (see next section)
+# testval -- try changing this to see how this global variable can be used in 
+# the local process below
+global j=0
+global testval = 17
+
+# note that we started with j = 0!!!
+# justify a condition
+while(j<testval) 
+    println("$j is definitely less than $testval") # prints j until j < 30
+    # step forward
+    j += 1 # count
+end
+```
+
+`while` loops don't require you to specify a looping sequence (e.g. `i in 1:100`).  But you do specify the starting value. The `while` loop can be very useful because sometimes you simply don't know how many iterations you might need.
+
+In the above code, you might have spotted the word `global`. Variables can exist in the `local` or `global` scope. If a variable exists inside a loop or function it is `local` and if you want to save it beyond the loop (i.e., in your workspace) you have to make it `global` - more on this below.
+
+## combine a function and a loop
+
+Let's get a bit more complicated.  Above, you created a function that added 2 to any number.  Let's embed that in a loop and introduce `enumerate`.  Quite often, there are functions you may want to apply to multiple things, and this is the example of how to do that!
+
+```{julia}
+# make a vector - these are input values to our function
+vv = [1,2,3,7,9,11]
+
+# enumerate takes a special two variable starter: "(index, value)"
+# note how we print the index, then the output and then a line break with \n
+for (i, v) in enumerate(vv)
+    out = plus_two(v)
+    println("this is element $i of vv")
+    println("$v plus 2 is equal to $out\n")
+end
+```
+
+## Scoping
+Scoping refers to the accessibility of a variable within your project. The scope of a variable is defined as the region of code where a variable is known and accessible. A variable can be in the global or local scope.
+
+### Global
+A variable in the `global` scope is accessible everywhere and can be modified by any part of your code. When you create (or allocate to) a variable in your script outside of a function or loop you're creating something that is `global`:
+
+```{julia}
+# global allocation to A
+A = 7
+B = zeros(1:10)
+```
+
+Of course you cab be super literate and force a variable to be `global`
+
+```{julia}
+global(c = 7)
+```
+
+### Local
+A variable in the `local` scope is only accessible in that scope or in scopes eventually defined inside it. When you define a variable within a function or loop that isn't returned then you create something that is `local`:
+
+
+```{julia}
+# global
+C2 = zeros(10)
+```
+
+
+```{julia}
+# local:
+for i in 1:10
+    local_varb = 2 # local_varb is defined inside the loop and is therefore local (only accessible within the loop)
+    C2[i] = local_varb*i # in comparison, C is defined outside of the loop and is therefore global 
+end
+```
+
+Now, let's see what we can see.
+
+C2 is `global` and it had numbers assigned to it, and we can see it.
+
+```{julia}
+C2
+```
+
+However, `local_varb` is local, and we can't ask for anything about it.  If we wanted to know about it, we'd have to ask for it to be `println`-ed to monitor it, or written (as it was to C2)
+
+```{julia}
+#| error: true
+local_varb
+```

@@ -1,0 +1,75 @@
+---
+title: "Tutorial 5: Plotting in Julia"
+date: now
+author: "Danet and Becks, based on originals by Delmas and Griffiths"
+format:
+    html:
+        embed-resources: true
+title-block-banner: true
+jupyter: julia-1.8
+---
+```{julia}
+#| echo: false
+using DataFrames, StatsPlots, Plots, Random
+```
+In R, the plotting of data is either done in base R or via the ggplot2 package. If you're a base R person, you'll probably feel more comfortable with the Plots package. Alternatively, if you prefer ggplot2, the StatsPlots and Gadfly package is the closest thing you'll find in Julia. We'll introduce both in the following sections.
+
+It is worth noting that Julia is based on a 'Just in Time' compiler (or JIT) so the first time you call a function it needs to compile, and can take longer than expected. This is especially true when rendering a plot. Consequently, the first plot you make might take some time but it gets significantly faster after that.
+
+## Plots
+
+As you saw in Tutorial 2, we can make plots out of variables very easily with the `plot` function.
+
+```{julia}
+Random.seed!(12345)
+x = 1:100
+y = rand(100)
+
+# label is for the legend/key
+# lw = linewidth
+plot(x, y, label = "amazing", title = "not amazing", lw = 3)
+```
+
+If you want to add more data to a plot, the `plot!()` function is super valuable, and complemented by the `xlabel!()` and `ylabel!()` function to update the x-axis
+
+```{julia}
+y2 = rand(100) # another 100 randoms
+plot!(x, y2, label = "less amazing")
+xlabel!("time is not your friend")
+ylabel!("ooh la la la")
+```     
+
+Recall too that there is a `seriestype` argument to shift between the default line and, perhaps a scatterplot.  Note that we can deliver both y and y2.
+
+```{julia}
+plot(x, y, seriestype = [:line,:scatter], markershape = :diamond, lc = :orange, mc = :black, msc = :orange, label = "Y")
+plot!(x, y2, seriestype = [:line,:scatter], markershape = :diamond, lc = :blue, mc = :black,  msc = :blue, label = "Y2")
+```
+
+`mc` is for marker colour, `msc` is the colour of the line around the marker/shape and `lc` is for line color.
+
+Of course, there is a `scatter()` plot function
+
+```{julia}
+scatter(x, y)
+```
+
+### Saving Plots
+
+Plots can be saved and outputted using savefig or by using an output marco (e.g. png or pdf). savefig saves the most recent plot (.png is default format) or you can name figures e.g., p1, and use that reference name to save the plot object at any time:
+
+```{julia}
+#| eval: false
+
+#not run
+savefig(p1, "path/to/file/p1.png")
+png(p1, path/to/file/p1")
+pdf(p1, path/to/file/p1")
+```
+
+Once you've created a plot it can be viewed or reopened in VS Code by navigating to the Julia explorer: Julia workspace symbol in the activity bar (three circles) and clicking on the plot object (e.g., p1). We advise that you always name and assign your plots (e.g. p1, p2, etc). The Plots package also has it's own [tutorial](https://docs.juliaplots.org/latest/tutorial/) for plotting in Julia.
+
+
+## StatsPlots
+
+## Gadfly

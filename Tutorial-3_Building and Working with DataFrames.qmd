@@ -1,0 +1,122 @@
+---
+title: "Tutorial 3: Building and Working with DataFrames"
+date: now
+author: "Danet and Becks, based on originals by Delmas and Griffiths"
+format:
+    html:
+        embed-resources: true
+title-block-banner: true
+jupyter: julia-1.8
+---
+
+```{julia}
+#| echo: false
+using DataFrames, StatsPlots, Plots, Random
+```
+
+Working with vectors, arrays and matrices is important.  But quite often, we want to collect high-dimension data (multiple variables) from our simulations and store them in a spreadsheet type format.
+
+As you've seen in Tutorial 1, there are plotting macros (`@df`) within the `StatsPlots` package that allow us to work with data frame objects from the `DataFrames` package.  A second benefit of the data frame object is that we can export it as a `csv` file and import this into **R** where we may prefer working on plotting and statistics.
+
+To this end, here we will also introduce the `CSV` package, which is very handy for exporting DataFrame objects to csv files, and importing them as well, if you'd like.
+
+## The Data Frame
+
+To initialise a dataframe you use the `DataFrame` function from the **DataFrames** package:
+
+```{julia}
+dat = DataFrame(col1=[], col2=[], col3=[]) # we use [] to specify an empty column of any type and size.
+```
+
+Alternately, you can specify the data type for each column.
+
+```{julia}
+dat1 = DataFrame(col1=Float64[], col2=Int64[], col3=Float64)
+```
+
+Of course, `col1` is not the only label you provide: variable names are super important and the conventions we use in **R** are also important here in **Julia**, e.g. `a.b` or `a_b` or `AaBa` but not `a b` (no spaces allowed).
+
+
+```{julia}
+# provide informative column titles using:
+dat2 = DataFrame(species=[], size=[], rate=[])
+```
+
+### Allocating or adding data to a data frame.
+
+To add data to a dataframe, we use the `push!` command.
+
+```{julia}
+species = "D. magna"
+size = 2.2
+rate = 4.2
+```
+
+```{julia}
+# push!() arguments: data frame, data
+push!(dat2, [species, size, rate])
+```
+
+Of course, the `push!()` function can append data to the existing data frame.  It is worth noting that `push!` can only append one row at a time. But since Julia is so good with loops (compared to R), this will make adding data to a dataframe really easy, and we'll learn how to do this in the next tutorial.
+
+```{julia}
+species2 = "D.pulex"
+size2 = 1.8
+rate2 = 3.1
+
+# push!() arguments: data frame, data
+push!(dat2, [species2, size2, rate2])
+```
+
+### Helper Functions for Data Frames
+
+You can print data frames using `println`
+
+```{julia}
+println(dat2)
+```
+
+There are `first` and `last` function that are like `head` and `tail` in R and elsewhere, with a first argument the data frame and the second argument the number of rows.
+
+```{julia}
+first(dat2, 2)
+```
+
+```{julia}
+last(dat2,2)
+```
+
+And as we learned with matrices and arrays, the `[row, column]` method also works for data frames:
+
+```{julia}
+dat2[1,2]
+```
+
+```{julia}
+dat2[1,:]
+```
+
+```{julia}
+dat2[:,3]
+```
+
+## The CSV
+
+As with *R*, there are functions to read and write `.csv` files to and from dataframes.  This makes interoperability with tools in R and standard data storage file formats easy.
+
+To write our daphnia data to a csv file, we use a familiar syntax, but a function from the `CSV` package.
+
+```{julia}
+#| eval: false
+
+CSV.write("daphniadata.csv", dat2)
+```
+
+Of course, you can read files in using.... yes, `CSV.read`.  Note the second argument declares the data to go into a data frame.
+
+```{julia}
+#| eval: false
+
+daph_in = CSV.read("betterDaphniaData.csv", DataFrame)
+```
+

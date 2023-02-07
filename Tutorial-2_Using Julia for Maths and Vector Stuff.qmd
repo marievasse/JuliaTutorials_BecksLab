@@ -1,0 +1,298 @@
+---
+title: "Tutorial 2: Using Julia for Maths and Vector Stuff"
+date: now
+author: "Danet and Becks, based on originals by Delmas and Griffiths"
+format:
+    html:
+        embed-resources: true
+title-block-banner: true
+jupyter: julia-1.8
+---
+
+```{julia}
+#| echo: false
+using DataFrames, StatsPlots, Plots, Random
+```
+
+This second document follows on from Tutorial 1: "Getting started" and assumes that you're still working in your active project.
+
+This document covers the following:
+
+- Basic maths
+- Arrays and Matrices
+- DataFrames and CSVs
+- Functions
+- Loops
+- Plots
+- Scoping
+
+There is also a section at the end with some "Quick tips".
+
+## Basic Maths
+
+As you probably can guess, the REPL is an interface onto a large calculator.  Julia does all the things R does... and you can find the basic maths operations defined [The Julia Manual](https://docs.julialang.org/en/v1/manual/mathematical-operations/index.html)
+
+```{julia}
+# sums
+1+1
+```
+
+```{julia}
+# power
+10^3
+```
+
+```{julia}
+# sequences in a vector
+# From 0, by 1, to 10...
+
+x = collect(0:1:10)
+
+# see it
+x
+```
+
+```{julia}
+# multply scaler x vector.
+x*10
+```
+
+## Getting Help
+
+Before we move on, lets talk about the help files and how to access them. As in R, the help files assiocated with a given package, function or command can be accessed using `?` followed by the function name (e.g. type `? pi` in the REPL).
+
+Similar to when you entered Julia's package manager (using `]`) you'll notice that the `?` command causes a change in the REPL with `help?> `replacing `julia>` as the prompt. This informs you that you've entered the help mode. As an exercise, use the help mode to find the difference between `print` and `println`.
+
+## Preamble to Objects like scalars, vectors and arrays
+Before we start creating arrays and matrices, we'd like to demonstrate how you allocate numbers and strings to objects in Julia and check an object's type. We'd also like to highlight some simple mathematical operations.
+
+### Allocating data to objects
+Allocating in Julia is useful as it means that variables can be stored and used elsewhere. You allocate numbers to objects using the following:
+
+First note that we use the `=` in `Julia`, not the `<-` as in R.
+
+```{julia}
+# allocate an Integer number to a variable
+n = 5
+```
+
+Julia, like other languages, has some built in values, like `pi`.  We can allocate these to variable names we will use.  Notice that Julia converts pi into the unicode symbol!
+
+
+```{julia}
+# allocate a pre-defined number of importance to a variable
+# note that pi is converted to π
+# note2 - you can use \pi in a julia script to get the unicode π ...
+# this works for numerous greek letters etc.  Like \lambda for λ
+pi_sum = pi
+pi_sum
+```
+
+We can use these unicode symbols, like λ, as objects
+
+```{julia}
+λ = 4
+λ
+```
+
+You can also assign multiple values to separate variables in a concise manner.  Julia can manage something like this:
+
+
+```{julia}
+αi, βi, γi = 1.3, 2.1, exp(39)
+
+# confirm...
+αi, βi, γi
+```
+
+#### Allocating strings...
+
+Of course you can also allocate strings of text to objects.  You must use the `""` and not `''` to define strings.
+
+```{julia}
+sob = "School of Biosciences"
+```
+
+You can combine strings and numbers to print like this. Note how you use $object.name within the text string you are writing... and this works for objects that are text or numeric.
+
+```{julia}
+println("The favourite number in $sob is $n")
+```
+
+### Identifying the Type of object you've made
+
+Julia is very specific about types of objects.  Most programming languages are.  One way to learn about them is to look at what is made when you make things in different ways.
+
+```{julia}
+typeof(n), typeof(sob), typeof(pi)
+```
+
+Julia is like R and Python in that it can infer the type of object (Integer, Float, etc) on the left hand side of the equals sign - you don't have to justify it like you do in C. However, you can declare the type if needed e.g.
+
+```{julia}
+pi_custom = Float64(3.141592)
+```
+
+For those of you that are interested, a floating-point object (a Float) is a number that has a decimal place. An Int object is an integer, a number without a decimal place, whereas an Irrational object is a specific type of Float used only for representing some irrational numbers of special significance (e.g. π and γ). The 64 purely refers to 64-bit which is the type of processor your computer uses, most modern computers are 64-bit.
+
+Occaisionally it will be valuable to convert an object from one type to another.  For example, `n` is currently an Integer (Int64), and we might want it to be Float (Float64).  To be clear, this is a distinction between `5` and `5.0`!
+
+```{julia}
+typeof(n)
+```
+
+```{julia}
+n2 = convert(Float64, n)
+typeof(n2)
+```
+
+## Understanding Arrays, Vectors and Sequences.
+
+As you saw above, we created a sequence of numbers using `collect(0:1:10)`. Let's look at what type of obect this is:
+
+```{julia}
+typeof(x)
+```
+
+This is a vector.  Let's step back to see the difference between arrays and vectors.  Arrays, for the R users, are best thought of as `lists` - they are storage boxes for any type of variables and can contain collections of various types.  The general way to create an array, in this case and empty one, is the `[ ]`.
+
+```{julia}
+empty_array = []
+```
+
+ We will first create an array with the same values as x and then see how collect() is the function that converts this to a vector, and actually lets us see the numbers too!
+
+First, `range` can be used to make an array. This is very similar to `seq()` in `R` and has the two variations - `by` and `length` that the `R` function has.  The idfference is that `by` is replaced by the argument `step`. Note how a very concise summary of this array is presented using information in square brackets `[ ]`:
+
+```{julia}
+x_array1 = range(start = 1, step = 1, stop = 10)
+x_array2 = range(start = 1, stop = 10, length = 5)
+
+x_array1, x_array2
+```
+
+You can also now see that creating arrays is possible with `[ ]` and the use of the `:` :
+
+```{julia}
+x_array3 = [1:1:10]
+```
+
+Quite often, you want to either see the values, or specifically be using a vector. To do this, you can use the function `collect()`:
+
+```{julia}
+collect(x_array1)
+```
+
+## Indices if Arrays.
+
+You should recall from **R** that values in arrays and vectors and dataframes have _addresses_ that we call indices.  Julia works with indexing very similarly.
+
+Let's make a simple array of 5 numbers and another simple array of five words.  Note that the `[]` array function is a but like the `c()` function in **R**.
+
+```{julia}
+ar = [6,7,8,9,10]
+br = ["Pint", "of", "Moonshine", "please"]
+```
+
+You can get any address in these using... square brackets!
+
+```{julia}
+ar[2] # gets the number 7!
+```
+
+```{julia}
+br[3] # gets the word Moonshine
+```
+
+If you want two addresses in a sequence, you can just provide the sequence:
+
+```{julia}
+ar[2:3]
+```
+
+But if you want non-adjacent values, you need to provide the 'list of indices' as an array, which results in the use of `[[ ]]`.
+
+```{julia}
+ar[[2,4]]
+```
+
+Note this would be like using in R `ar[c(2,4)]`.
+
+## Broadcasting: something VERY special
+
+Imagine that you want to apply a function, like a `log()` or `exp()` function, to an array.  We saw above that we can create a vector using `collect()` and multiply this by a scalar
+
+```{julia}
+# sequences in a vector
+# From 0, by 1, to 10...
+
+x = collect(0:1:10)
+
+# see it
+x
+```
+
+```{julia}
+# multply scaler x vector.
+x*10
+```
+
+You can work directly with arrays and pre-built functions to do things like this.  To do-so, we combine the function with the (dot) `.` operator.  Let's work with `x_array1` from above.  Note how broadcasting the function across the array returns a vector.
+
+```{julia}
+# Look at the help file for exp10
+exp_array1 = exp10.(x_array1)
+```
+
+```{julia}
+# look at the help file for log - what is the defaul!?
+log_array1 = log.(x_array1)
+```
+
+Did you check the help file for `log`?  Is it the same default as we find in **R**?
+
+## Matrices
+
+Sometimes we'll be interested in a 2-dimensional or higher version of the array/vector, and this is a matrix.  Making a matrix in Julia uses the `[ ]` again, an separates rows of numbers with the `;`
+
+```{julia}
+mat = [1 2 3; 4 5 6]
+```
+
+Note how there are NO commas between the numbers in each row!  This is read as 'rows are separated by ; and columns by spaces'!
+
+You can also 'pre-fill' a matrix with zeros.  This is good practice in loops and programming as pre-filling and replacing variables in a matrix is more efficient than creating the matrix on the fly.  Here we demonstrate how to pre-fil a vector, matrix and high dimension array!  Matrices can have more than two dimensions!
+
+```{julia}
+vec0 = zeros(2) # 2 zeros allocated in a vector
+```
+
+```{julia}
+mat0 = zeros(2,3) # zeros allocated to 2 rows and 3 columns!
+```
+
+```{julia}
+arr0 = zeros(2,3,4) # 2 rows, 3 columns and 4 dimensions!
+```
+
+Accessing values in a matrix follows the same convention as with the vector.  The convention is `[row, column]`
+
+```{julia}
+mat[1,2] # value in the first row and second column
+```
+
+```{julia}
+mat[1:2, 3] # rows 1 AND 2 in the 3rd column
+```
+
+Finally, to get a row or column, you need to know that we need a placeholder for the _missing_ bit of what you are asking for.  If we want the second row, we ask for row 2, and stick the `:` placeholder in the column spot:
+
+```{julia}
+mat[2,:]
+```
+
+For a column, we reverse this.
+
+```{julia}
+mat[:,2]
+```
