@@ -8,6 +8,7 @@ format:
 title-block-banner: true
 jupyter: julia-1.8
 ---
+
 ```{julia}
 #| echo: false
 using DataFrames, StatsPlots, Plots, Random
