@@ -4,6 +4,7 @@ project:
 
 website:
   title: "Julia Tutorials for BEFWM2"
+  page-navigation: true
   sidebar:
     style: "docked"
     search: true
@@ -21,7 +22,11 @@ website:
           - Tutorial-4_Programming Basics.qmd
           - Tutorial-5_Plotting in Julia.qmd
           - Tutorial-6_Extra Tips and Tricks.qmd
-
+      - section: "Intro to Differential Equations"
+        contents:
+          - Tutorial-7_Intro To Differential Equations.qmd
+      - section: "Intro to the BEFW model"
+          
 format:
   html:
     theme: cosmo

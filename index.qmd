@@ -31,3 +31,7 @@ In the world of **VSCode** and **Julia**, we do something similar.  You will cre
 There are some parallels...  first, adding packages in **Julia** uses the `Pkg` toolbox and gets them from the [Julia Language Ecosystem](https://julialang.org/packages/).  This is like downloading them from CRAN for **R**.  Second, making packages available for use in a **Julia** script requires the `using` function, which is a lot like the `library()` function.
 
 Anyhow, the goal IS to try and make a workflow for **Julia** and **VSCode** that acts like the **R** and **RStudio** setup you are familiar with.
+
+### How to use these tutorials
+
+The simple idea here is to make a Julia script and add the code in these tutorials to your scripts.  Make sure you annotate using the `#` symbol, as we do in R Scripts.  We suggest that You have a script associated with each section of the table of contents on the left.
