@@ -1,5 +1,5 @@
 ---
-title: "Tutorial 7: Introducting Differential Equations"
+title: "Tutorial 7: Introducing Differential Equations"
 date: now
 author: "Danet and Becks, based on originals by Delmas and Griffiths"
 format:

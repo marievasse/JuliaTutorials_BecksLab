@@ -12,7 +12,7 @@ website:
       - section: "Setting Up"
         contents:
           - index.qmd
-          - Tutorial-1_Downloads, Setups and Your First Project.qmd
+          - Tutorial-1_Downloads Setups and Your First Project.qmd
       - section: "Basic Calculations and Objects"
         contents:
           - Tutorial-2_Using Julia for Maths and Vector Stuff.qmd
