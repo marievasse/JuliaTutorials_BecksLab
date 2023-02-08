@@ -54,6 +54,28 @@ Of course, there is a `scatter()` plot function
 scatter(x, y)
 ```
 
+### Grouping Variables in Plots
+
+Julia's Plots.jl library does some basic work with grouping variables too, linking to key ideas about tidy data.  Let's look at some sample data where we have 12 data points (stability0 with 4 replicate observations from three networks (Network_1, Network_2 and Network_3).
+
+```{julia}
+sample_data = DataFrame([rand(12), repeat(["Network_1","Network_2","Network_3"],4)], ["stability", "network"])
+```
+
+Plotting the data, by group, is accomplished like this (note the use of the `.` to connect the dataframe to the variable name)
+
+```{julia}
+plot(sample_data.stability, group=sample_data.network)
+```
+
+This is a pretty silly plot because the x-axis makes no sense.  We might have wanted a bar-chart instead.
+
+```{julia}
+groupedbar(sample_data.stability, group = sample_data.network)
+```
+
+We'll see below how the package `StatsPlots` makes this easier and more flexible (a bit more like ggplot2).
+
 ### Saving Plots
 
 Plots can be saved and outputted using savefig or by using an output marco (e.g. png or pdf). savefig saves the most recent plot (.png is default format) or you can name figures e.g., p1, and use that reference name to save the plot object at any time:
@@ -72,4 +94,64 @@ Once you've created a plot it can be viewed or reopened in VS Code by navigating
 
 ## StatsPlots
 
+As you saw in the Setup introduction, we can also use the StatsPlots package for plotting.  This approach invokes a background macro that allows you to use the DataFrames structure to deliver nice plots.
+
+
+```{julia}
+# make a second data frame with three variables
+# using DataFrame directly to create variables
+df2 = DataFrame(a=1:10, b=10*rand(10), c=10*rand(10))
+df2
+```
+
+The use of the `@df` macro from StatsPlots is a three step process:
+
+1. declare the `@df` macro
+2. define the data frame
+3. declare the columns, using the `:` symbol.
+
+```{julia}
+# plot the data using the data frame macro
+# declare the df macro, declare the data frame, use : to signify columns
+# note that the default is `x then y`.
+@df df2 plot(:a, :b)
+```
+
+One of the handy things about the `@df` macro and `StatsPlots` is the ability to add two or more variables at once:
+
+```{julia}
+# the same, and plotting two y variables (b and c)
+@df df2 plot(:a, [:b, :c])
+```
+
+There are several helper functions too.  For example, instead of the `[[:b, :c]` approach to multiple columns, there is a `cols` argument.
+
+```{julia}
+@df df2 plot(:a, cols(2:3), colour = [:red :blue])
+```
+
+Finally, coming back to the example above for plots using the `sample_data` dataframe with a grouping variable, we can see how `StatsPlots` mimics some of the faceting options and group options from `ggplot2`.
+
+First, the three groups in the same figure with an informative legend.
+
+```{julia}
+@df sample_data plot(:stability, group = :network, legend = :topleft)
+```
+
+Second, the same data but in three panels.
+
+```{julia}
+@df sample_data plot(:stability, group = :network, layout = 3)
+```
+
+And following the standard `Plots.jl` example for grouped bars....
+
+```{julia}
+@df sample_data groupedbar(:stability, group = :network)
+```
+
 ## Gadfly
+
+There is a actively developed package called `Gadfly` which implements an interpretation of the `ggplot2` grammar of graphics.  It has been finicky and unstable for us in the past, but you are welcome to try it.  To use it, you need to install the package with the `] add Gadfly` first step, and then `using Gadfly` in the top of your script.
+
+A tutorial and set of examples can be found [here](http://gadflyjl.org/v0.5/tutorial.html)
