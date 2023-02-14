@@ -1,0 +1,15 @@
+---
+title: "Tutorial 8: Introducing Ecological Network Dynamics (BEFWM2)"
+date: now
+author: "Danet and Becks, based on originals by Delmas and Griffiths"
+format:
+    html:
+        embed-resources: true
+title-block-banner: true
+jupyter: julia-1.8
+---
+
+```{julia}
+#| echo: false
+using DataFrames, Plots, Random, EcologicalNetworksPlots, EcologicaNetworkDynamics
+```
