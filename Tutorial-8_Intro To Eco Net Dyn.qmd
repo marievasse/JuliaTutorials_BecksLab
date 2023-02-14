@@ -43,3 +43,24 @@ using BEFWM2, DataFrames, Random, Plots, EcologicalNetworksPlots
 
 ## Time to do some Experiments!
 ```
+
+### Preamble
+
+One of main advantages of running food web models in Julia is that simulations are fast and can be readily stored in your active project. With this in mind, make a new folder in your project called `out_objects` (right click > New Folder).
+
+### A first run of the Ecological Network Dynamics model (BEFW)
+
+There are four major steps when running the BioEnergetic Food Web model in Julia.  These should be familiar from our introduction to the `DifferentialEquations` package:
+
+1. Generate an initial food web network
+2. Set the parameters for each species in the network to generate the equations
+3. Simulate the network and equations
+4. Explore output and plot
+
+While in the previous example with `Differential Equations` we assumed a simple 2-species network, one of the new activities here is to take advantage of a rich history of theory and tools to construct species rich networks with appropriate structural properties, such as _connectance/complexity_ and levels of _generalism/specialism_ and things the number of trophic levels and a body size distribtion of the species across trophic levels.
+
+#### Step 1: Generae the initial network
+
+Before running the BEFW model, we have to construct an initial food web network (an adjacency matrix) using [the niche model](https://www.nature.com/articles/35004572?cacheBust=1510239451067). The network is characterised by the number of species in the network and its [connectance/complexity](https://en.wikipedia.org/wiki/Ecological_network) value.
+
+Here, we generate a network of 20 species with a connectance value of 0.15 (e.g. 15% of the links are realised):

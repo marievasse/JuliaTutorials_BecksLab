@@ -4147,7 +4147,14 @@ vertical-align: -.125em;
 </nav>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#preamble" id="toc-preamble" class="nav-link active" data-scroll-target="#preamble">Preamble</a></li>
+  <li><a href="#a-first-run-of-the-ecological-network-dynamics-model-befw" id="toc-a-first-run-of-the-ecological-network-dynamics-model-befw" class="nav-link" data-scroll-target="#a-first-run-of-the-ecological-network-dynamics-model-befw">A first run of the Ecological Network Dynamics model (BEFW)</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content quarto-banner-title-block" id="quarto-document-content">
@@ -4183,8 +4190,28 @@ vertical-align: -.125em;
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">## Time to do some Experiments!</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<section id="preamble" class="level3">
+<h3 class="anchored" data-anchor-id="preamble">Preamble</h3>
+<p>One of main advantages of running food web models in Julia is that simulations are fast and can be readily stored in your active project. With this in mind, make a new folder in your project called <code>out_objects</code> (right click &gt; New Folder).</p>
+</section>
+<section id="a-first-run-of-the-ecological-network-dynamics-model-befw" class="level3">
+<h3 class="anchored" data-anchor-id="a-first-run-of-the-ecological-network-dynamics-model-befw">A first run of the Ecological Network Dynamics model (BEFW)</h3>
+<p>There are four major steps when running the BioEnergetic Food Web model in Julia. These should be familiar from our introduction to the <code>DifferentialEquations</code> package:</p>
+<ol type="1">
+<li>Generate an initial food web network</li>
+<li>Set the parameters for each species in the network to generate the equations</li>
+<li>Simulate the network and equations</li>
+<li>Explore output and plot</li>
+</ol>
+<p>While in the previous example with <code>Differential Equations</code> we assumed a simple 2-species network, one of the new activities here is to take advantage of a rich history of theory and tools to construct species rich networks with appropriate structural properties, such as <em>connectance/complexity</em> and levels of <em>generalism/specialism</em> and things the number of trophic levels and a body size distribtion of the species across trophic levels.</p>
+<section id="step-1-generae-the-initial-network" class="level4">
+<h4 class="anchored" data-anchor-id="step-1-generae-the-initial-network">Step 1: Generae the initial network</h4>
+<p>Before running the BEFW model, we have to construct an initial food web network (an adjacency matrix) using <a href="https://www.nature.com/articles/35004572?cacheBust=1510239451067">the niche model</a>. The network is characterised by the number of species in the network and its <a href="https://en.wikipedia.org/wiki/Ecological_network">connectance/complexity</a> value.</p>
+<p>Here, we generate a network of 20 species with a connectance value of 0.15 (e.g. 15% of the links are realised):</p>
 
 
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
