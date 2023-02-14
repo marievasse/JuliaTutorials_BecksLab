@@ -91,9 +91,7 @@ version = "1.0.1"
 
 [[deps.BEFWM2]]
 deps = ["DiffEqBase", "DifferentialEquations", "EcologicalNetworks", "SparseArrays", "Statistics"]
-git-tree-sha1 = "251171bc148ff93c14c34a22bce1e89f38101b9d"
-repo-rev = "main"
-repo-url = "/Users/apb/Documents/GitHubREPOS/BEFWM2"
+path = "/Users/apb/Documents/EcologicalNetworksDynamics.jl-main/"
 uuid = "2fd9189a-c387-4076-88b7-22b33b5a4388"
 version = "0.1.0"
 

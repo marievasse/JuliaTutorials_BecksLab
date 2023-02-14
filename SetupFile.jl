@@ -66,4 +66,5 @@ Conda.add("jupyter-cache")
 # (e.g. use GitHub Desktop to clone BEFWM2 to local machine)
 # (If copy exists, Fetch Origin before doing this)
 
-Pkg.add(path = "/Users/apb/Documents/GitHubREPOS/BEFWM2/")
+# Pkg.add(path = "/Users/apb/Documents/GitHubREPOS/BEFWM2/")
+Pkg.develop(path = "/Users/apb/Documents/EcologicalNetworksDynamics.jl-main/")

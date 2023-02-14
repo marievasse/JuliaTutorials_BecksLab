@@ -11,5 +11,35 @@ jupyter: julia-1.8
 
 ```{julia}
 #| echo: false
-using DataFrames, Plots, Random, EcologicalNetworksPlots, EcologicaNetworkDynamics
+using DataFrames, Plots, Random, EcologicalNetworksPlots, BEFWM2
+```
+
+
+Navigate to the [GitHub location for the BioEnergetic Model](https://github.com/BecksLab/EcologicalNetworksDynamics.jl).
+
+It should look like this:
+
+![GitHubPageForBEFW](Figs/BEFWGit.png)
+
+Then download to your Documents Folder the package.
+
+![DownloadTheZip](Figs/DownloadZip.png)
+
+Once this folder is unzipped in your Documents Folder, you can _install_ it using `Pkg.develop`.
+
+```{julia}
+#| eval: false
+using Pkg
+Pkg.develop("~/Documents/EcologicalNetworksDynamics.jl-main/")
+```
+
+
+```{julia}
+#| eval: false
+## My first BEFW Modelling
+
+## Packages I need
+using BEFWM2, DataFrames, Random, Plots, EcologicalNetworksPlots
+
+## Time to do some Experiments!
 ```

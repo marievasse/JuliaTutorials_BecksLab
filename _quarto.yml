@@ -26,7 +26,9 @@ website:
         contents:
           - Tutorial-7_Intro To Differential Equations.qmd
       - section: "Intro to the BEFW model"
-          
+        contents:
+          - Tutorial-8_Intro To Eco Net Dyn.qmd
+
 format:
   html:
     theme: cosmo
