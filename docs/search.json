@@ -298,6 +298,6 @@
     "href": "Tutorial-8_Intro To Eco Net Dyn.html#a-more-complex-example",
     "title": "Tutorial 8: Introducing Ecological Network Dynamics (BEFWM2)",
     "section": "A More Complex Example",
-    "text": "A More Complex Example\n\nStep 1: Generae the initial network\nBefore running the BEFW model, we have to construct an initial food web network (an adjacency matrix) using the niche model. The network is characterised by the number of species in the network and its connectance/complexity value."
+    "text": "A More Complex Example\n\nStep 1: Generae the initial network\nIn order to run the BEFW model with a more complex network, we have to construct an initial food web network (an adjacency matrix) using the niche model. The network is characterised by the number of species in the network and its connectance/complexity value."
   }
 ]

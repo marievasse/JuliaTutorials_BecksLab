@@ -115,4 +115,4 @@ plot!(t, B3, lw = 3, label="Top consumer")
 
 #### Step 1: Generae the initial network
 
-Before running the BEFW model, we have to construct an initial food web network (an adjacency matrix) using [the niche model](https://www.nature.com/articles/35004572?cacheBust=1510239451067). The network is characterised by the number of species in the network and its [connectance/complexity](https://en.wikipedia.org/wiki/Ecological_network) value.
+In order to run the BEFW model with a more complex network, we have to construct an initial food web network (an adjacency matrix) using [the niche model](https://www.nature.com/articles/35004572?cacheBust=1510239451067). The network is characterised by the number of species in the network and its [connectance/complexity](https://en.wikipedia.org/wiki/Ecological_network) value.
