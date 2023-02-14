@@ -11,7 +11,7 @@ jupyter: julia-1.8
 
 ```{julia}
 #| echo: false
-using DataFrames, Plots, Random, EcologicalNetworksPlots, BEFWM2
+using DataFrames, Plots, Random, EcologicalNetworks, EcologicalNetworksPlots, BEFWM2
 ```
 
 
@@ -59,8 +59,60 @@ There are four major steps when running the BioEnergetic Food Web model in Julia
 
 While in the previous example with `Differential Equations` we assumed a simple 2-species network, one of the new activities here is to take advantage of a rich history of theory and tools to construct species rich networks with appropriate structural properties, such as _connectance/complexity_ and levels of _generalism/specialism_ and things the number of trophic levels and a body size distribtion of the species across trophic levels.
 
+#### Step 1: generate an initial network
+
+Here we make a foodweb, actually, a food chain, from an _adjacency matrix_ with the FoodWeb method.
+
+```{julia}
+A = [0 0 0; 1 0 0; 0 1 0] # 1 basal producer ⋅ Species 2 eats 1 ⋅ Species 3 eats 2
+foodweb = FoodWeb(A)
+```
+
+#### Step 2: Generate the model parameters
+
+Once the foodweb is created, the next step is to attribute values to the model parameters. This can be simply done by calling the method ModelParameters with foodweb as an argument.
+
+```{julia}
+# construct the equations and fixed parameters
+# see below for body size dependent parameters etc
+params = ModelParameters(foodweb)
+```
+
+#### Step 3: Simulate biomass dynamics
+
+Everything is ready to run the simulation, which can be simply done by calling simulate with the model parameters (params) and a vector species' initial biomass (B0).
+
+```{julia}
+# create body sizes for each species
+B0 = [0.5, 0.5, 0.5]
+
+# use simulate function
+# builds equations and uses DiffEq to run them!
+sim = simulate(params, B0)
+```
+
+
+#### Step 4: Seeing the outputs!
+
+Eventually you may want to plot the biomass dynamics - the trajectory -  of your community to see what is happening. For our minimal example, it can be done as follows:
+
+```{julia}
+# create multiple objects: time = t and Bx = biomass for each species
+# note how julia allows multiple things on left of = sign!
+t, B1, B2, B3 = sim.t, sim.B[:,1], sim.B[:,2], sim.B[:,3]; # unpack variables
+
+# Plot the basal species
+plot(t, B1, lw = 3, label="Producer", xlabel = "Time", ylabel = "Biomass")
+# add the herbivore
+plot!(t, B2, lw = 3, label="Consumer")
+# add the top predator
+plot!(t, B3, lw = 3, label="Top consumer")
+```
+
+
+
+## A More Complex Example
+
 #### Step 1: Generae the initial network
 
 Before running the BEFW model, we have to construct an initial food web network (an adjacency matrix) using [the niche model](https://www.nature.com/articles/35004572?cacheBust=1510239451067). The network is characterised by the number of species in the network and its [connectance/complexity](https://en.wikipedia.org/wiki/Ecological_network) value.
-
-Here, we generate a network of 20 species with a connectance value of 0.15 (e.g. 15% of the links are realised):
