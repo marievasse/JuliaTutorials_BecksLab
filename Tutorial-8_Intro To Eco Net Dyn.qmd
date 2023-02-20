@@ -30,7 +30,7 @@ Once this folder is unzipped in your Documents Folder, you can _install_ it usin
 ```{julia}
 #| eval: false
 using Pkg
-Pkg.develop("~/Documents/EcologicalNetworksDynamics.jl-main/")
+Pkg.develop(path = "~/Documents/EcologicalNetworksDynamics.jl-main/")
 ```
 
 
