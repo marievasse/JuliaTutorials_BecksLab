@@ -11,7 +11,8 @@ jupyter: julia-1.8
 
 ```{julia}
 #| echo: false
-using DataFrames, Plots, Random, EcologicalNetworks, EcologicalNetworksPlots, BEFWM2
+using DataFrames, Plots, Random, Distributions
+using EcologicalNetworks, EcologicalNetworksPlots, BEFWM2
 ```
 
 
@@ -110,9 +111,47 @@ plot!(t, B3, lw = 3, label="Top consumer")
 ```
 
 
-
 ## A More Complex Example
 
 #### Step 1: Generae the initial network
 
 In order to run the BEFW model with a more complex network, we have to construct an initial food web network (an adjacency matrix) using [the niche model](https://www.nature.com/articles/35004572?cacheBust=1510239451067). The network is characterised by the number of species in the network and its [connectance/complexity](https://en.wikipedia.org/wiki/Ecological_network) value.
+
+Note that we are now using functionality provided by the `EcologicalNetworks` package.
+
+```{julia}
+S = 20; # define the number of species
+C = 0.2; # define the connectance (complexity) of the network
+
+# construct the food web
+foodweb_niche = FoodWeb(nichemodel, S, C=C)
+
+# see it:
+foodweb_niche.A
+```
+
+As above, our next step is to define a vector of bodymasses and then pass this, and the network to the `simulate` function.  Here we combine the `Uniform` function from the _Distributions_ package with the `rand` function from the _Random_ package.
+
+```{julia}
+# construct the equations and fixed parameters
+# see below for body size dependent parameters etc
+params_niche = ModelParameters(foodweb_niche)
+
+# define bodymasses between 0 and 1 and get S = 20 of them.
+# this will ensure your plot looks like the one in the document
+Random.seed!(123)
+B0 = rand(S)
+
+# simulate using params and bodymasses
+sim_niche = simulate(params_niche, B0, stop = 100)
+```
+
+Now we can move to plotting again.  Note how we now ask for the time directly from the simulate object and all of the biomasses from that object as well.
+
+Note too how we can supress the legend (which covers some of the time series).
+
+```{julia}
+plot(sim_niche[:t], (sim_niche[:B]), legend = false)
+```
+
+One game to play now is to alter the bodymass distribution. `rand` selects a randon uniform number between 0 and 1.  Can you figure out how to make the distribution uniform between 0 and 10?  See what that does.
