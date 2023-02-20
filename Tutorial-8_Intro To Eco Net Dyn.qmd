@@ -155,3 +155,5 @@ plot(sim_niche[:t], (sim_niche[:B]), legend = false)
 ```
 
 One game to play now is to alter the bodymass distribution. `rand` selects a randon uniform number between 0 and 1.  Can you figure out how to make the distribution uniform between 0 and 10?  See what that does.
+
+Further games involve changing `S` and `C`.  The next section will introduce how to do these kinds of changes in a loop, and collect information in a data frame.
