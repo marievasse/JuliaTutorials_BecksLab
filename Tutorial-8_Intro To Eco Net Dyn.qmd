@@ -35,18 +35,34 @@ using Pkg
 Pkg.develop(path = "~/Documents/EcologicalNetworksDynamics.jl-main/")
 ```
 
+And now, you are ready to construct a script using the modelling tools!  
 
 ```{julia}
 #| eval: false
 ## My first BEFW Modelling
 
 ## Packages I need
-using BEFWM2, DataFrames, Random, Plots, EcologicalNetworksPlots
+using DataFrames, Plots, Random, Distributions
+using EcologicalNetworks, EcologicalNetworksPlots, EcologicalNetworksDynamics
 
 ## Time to do some Experiments!
 ```
 
-### Preamble
+### Preamble: The Bioenergetic Food Web.
+
+It is very worth pausing for a moment and visting [this paper](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210x.12713) by Dr. Eva Delmas. It describes the BioEnergetic Food Web Model, provides some history of the model, and also showcases how the original **Julia** version of the model worked.  This section of the tutorials is designed to introduce a newer, faster and more flexible version of the **Julia** package.
+
+A very basic interpretation of the model is as follows:
+
+1. The model is a model of biomass dynamics, not numbers of indiduals. 
+2. The model is comprised of an equation for plants (producers) an equation for consumers (herbivores, predators).
+3. Plants have traits that make their biomass grow and sets their carrying capacity; they are eaten by consumers via an equation describing a functional response.  To link to ecology courses you have, this can be logistic growth for the plant and a type II functional response.
+4. Consumer have three sets of traits.  One is metabolism, which is a rate that describes losses of biomass due to, well, metabolism!  The second set of traits correspond to the functional response - for example describing attack rates and handling times of prey items.  The third corresponds to the numerical response, or the conversion of biomass they eat into new biomass (e.g. babies)
+5. We can make complex networks and systems of these equations by letting many of these paramters _scale with body size_ via the rules of allometry and the Metabolic Theory of Ecology.  This _trick_ expands the two equations to n = number of species when we provide the toolbox with a list of species biomasses.  
+6. Embedded in this process are rules about how to distribute species of different sizes across trophic levels, so that we end up with predators, omnivores, herbivores and plants.  We can also designate the body size relationships for different groups of organisms, like producers, invertebrates, endothermic vertebrates and ectothermic vertebrates.  
+7. Once we've done this, we can simulate the biomass dynamics of complext communities.  And we can summarise things like changes in biodiversity (number of species), stability (coefficient of variation of the time series) and anything about the biomass of species, trophic levels or the community!
+
+### Preamble: Setup
 
 One of main advantages of running food web models in Julia is that simulations are fast and can be readily stored in your active project. With this in mind, make a new folder in your project called `out_objects` (right click > New Folder).
 
@@ -93,7 +109,6 @@ B0 = [0.5, 0.5, 0.5]
 sim = simulate(params, B0)
 ```
 
-
 #### Step 4: Seeing the outputs!
 
 Eventually you may want to plot the biomass dynamics - the trajectory -  of your community to see what is happening. For our minimal example, it can be done as follows:
@@ -120,7 +135,7 @@ More generally, you could also just plot the actual `simulate` object directly
 
 ## A More Complex Example
 
-#### Step 1: Generae the initial network
+#### Step 1: Generate the initial network
 
 In order to run the BEFW model with a more complex network, we have to construct an initial food web network (an adjacency matrix) using [the niche model](https://www.nature.com/articles/35004572?cacheBust=1510239451067). The network is characterised by the number of species in the network and its [connectance/complexity](https://en.wikipedia.org/wiki/Ecological_network) value.
 
@@ -137,6 +152,8 @@ foodweb_niche = FoodWeb(nichemodel, S, C=C)
 # see it:
 foodweb_niche.A
 ```
+
+#### Step 2. Setting up the paramters, body masses (species) and running the model!
 
 As above, our next step is to define a vector of bodymasses and then pass this, and the network to the `simulate` function.  Here we combine the `Uniform` function from the _Distributions_ package with the `rand` function from the _Random_ package.
 
@@ -156,6 +173,8 @@ B0 = rand(S)
 sim_niche = simulate(params_niche, B0, tmax = 50)
 ```
 
+#### Step 3. Visualising the dynamics
+
 Now we can move to plotting again.  Note how we now ask for the time directly from the simulate object and all of the biomasses from that object as well.
 
 Note too how we can supress the legend (which covers some of the time series).
@@ -165,5 +184,39 @@ plot(sim_niche, legend = false)
 ```
 
 One game to play now is to alter the bodymass distribution. `rand` selects a randon uniform number between 0 and 1.  Can you figure out how to make the distribution uniform between 0 and 10?  See what that does.
+
+#### A bit more about the process: dissecting the ModelParameters
+
+Let's dissect the ModelParameters object a bit, to understand just a bit more about what is going on.  Let's look at what params, from our first three-species example above, returned.
+
+```{julia}
+params
+```
+
+>  network: FoodWeb(S=3, L=2)
+  environment: Environment(K=[1, nothing, nothing], T=293.15K)
+  biorates: BioRates(d, r, x, y, e)
+  functional_response: BioenergeticResponse
+  producer_competition: ProducerCompetition((3, 3) matrix)
+  temperature_response: NoTemperatureResponse
+
+Walking through this
+
+1. The `network` component defines the food web and reports the number of species and the links
+2. the `environment` component reports on values of the carrying capacity (K) and the baseline temperature (`T`).  Note that K is specified only for the basal species via `[1, nothing, nothing]`.  The presence of the `T` suggests that we can ultimately work with climate change by running the model at different temperatures.  There is a way to make some of the biorates and components of the functional response (see 3, 4) dependent not only on body mass, but also on temperature.
+3. the `biorates` component contains detail on parameters central to making the model reflect a bit of reality: `d` is ...; `r` is the intrinsic rate of increase (population growth rate) for the producers (plants); `x` and `y` are paramters associated with metabolic rates and consumption rates of the consumers (non-plant species).  Finally, `e` is an efficiency/assimilation rate for the consumers eating either plants or other animals.
+4. the `functional_response` component defines the type of _consumption function_ being used (e.g. Type I, II, or III sensu classic ecology and Holling).  The functional response defines the _interaction strength_ between species and how consumers change how much they eat dependent on the amount (density) of resource available.There are two options.  The default `Bioenergetic Response` corresponds to a _phenomenological_ formulation where there are just two variables that describe how consumer consumption varies with resource density: a _half-saturation_ parameter and an _asymptote_.  The alternative called `Classic Response` is more _trait based_ and includes the parameters _attack rate_ and _handling time_.  There are several other features of the functional response that can be manipulated, and these are introduced in later tutorials.  
+5. the `producer competition` component allows us to alter how plants compete with each other.
+6. the `temperature response`componewnt defines the absence or presence of temperature dependence, and when present, the shape of the relationship between biorates and functional response parameters and temperature.
+
+### Helper Functions: What can we do with the outputs?
+
+As noted in the pre-amble, we are most often interested in additional information about the scenarios we build with the models.  These include, for example, total biomass, biodiversity and stability.  Let's see how we can calcuate some of these.
+
+#### 
+
+```{julia}
+
+```
 
 Further games involve changing `S` and `C`.  The next section will introduce how to do these kinds of changes in a loop, and collect information in a data frame.
