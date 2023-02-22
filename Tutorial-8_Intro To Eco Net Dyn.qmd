@@ -9,7 +9,7 @@ title-block-banner: true
 jupyter: julia-1.8
 ---
 
-This section of the tutorials initiates you into using the Bioenergetic Food Web Model. 
+This section of the tutorials initiates you into using the Bioenergetic Food Web Model.
 
 ## Getting the Julia Package
 
@@ -39,7 +39,7 @@ using Pkg
 Pkg.develop(path = "~/Documents/EcologicalNetworksDynamics.jl-main/")
 ```
 
-And now, you are ready to construct a script using the modelling tools!  
+And now, you are ready to construct a script using the modelling tools!
 
 ```{julia}
 #| eval: false
@@ -60,12 +60,12 @@ It is very worth pausing for a moment and visting [this paper](https://besjourna
 
 A very basic interpretation of the model is as follows:
 
-1. The model is a model of biomass dynamics, not numbers of indiduals. 
+1. The model is a model of biomass dynamics, not numbers of indiduals.
 2. The model is comprised of an equation for plants (producers) an equation for consumers (herbivores, predators).
 3. Plants have traits that make their biomass grow and sets their carrying capacity; they are eaten by consumers via an equation describing a functional response.  To link to ecology courses you have, this can be logistic growth for the plant and a type II functional response.
 4. Consumer have three sets of traits.  One is metabolism, which is a rate that describes losses of biomass due to, well, metabolism!  The second set of traits correspond to the functional response - for example describing attack rates and handling times of prey items.  The third corresponds to the numerical response, or the conversion of biomass they eat into new biomass (e.g. babies)
-5. We can make complex networks and systems of these equations by letting many of these paramters _scale with body size_ via the rules of allometry and the Metabolic Theory of Ecology.  This _trick_ expands the two equations to n = number of species when we provide the toolbox with a list of species biomasses.  
-6. Embedded in this process are rules about how to distribute species of different sizes across trophic levels, so that we end up with predators, omnivores, herbivores and plants.  We can also designate the body size relationships for different groups of organisms, like producers, invertebrates, endothermic vertebrates and ectothermic vertebrates.  
+5. We can make complex networks and systems of these equations by letting many of these paramters _scale with body size_ via the rules of allometry and the Metabolic Theory of Ecology.  This _trick_ expands the two equations to n = number of species when we provide the toolbox with a list of species biomasses.
+6. Embedded in this process are rules about how to distribute species of different sizes across trophic levels, so that we end up with predators, omnivores, herbivores and plants.  We can also designate the body size relationships for different groups of organisms, like producers, invertebrates, endothermic vertebrates and ectothermic vertebrates.
 7. Once we've done this, we can simulate the biomass dynamics of complext communities.  And we can summarise things like changes in biodiversity (number of species), stability (coefficient of variation of the time series) and anything about the biomass of species, trophic levels or the community!
 
 ### Preamble: Setup
@@ -122,7 +122,7 @@ Eventually you may want to plot the biomass dynamics - the trajectory -  of your
 ```{julia}
 # create multiple objects: time = t pulled frpom the sim.t component
 # and Bx = biomass for each species pulled from the larger sim object
-# note how julia allows multiple things on left of the = 
+# note how julia allows multiple things on left of the =
 t, B1, B2, B3 = sim.t, sim[1,:], sim[2,:], sim[3,:]; # unpack variables
 
 # Plot the basal species
@@ -133,7 +133,7 @@ plot!(t, B2, lw = 3, label="Consumer")
 plot!(t, B3, lw = 3, label="Top consumer")
 ```
 
-More generally, you could also just plot the actual `simulate` object directly
+More generally, you could also just plot the actual `simulate` object directly.  Much easier!
 
 ```{julia}
  plot(sim, label = ["Producer" "Consumer" "Top consumer";])
@@ -176,7 +176,7 @@ B0 = rand(S)
 # simulate using params and bodymasses
 # note additional argument tmax for max time steps
 # default is 300
-sim_niche = simulate(params_niche, B0, tmax = 50)
+sim_niche = simulate(params_niche, B0)
 ```
 
 #### Step 3. Visualising the dynamics
@@ -193,36 +193,84 @@ One game to play now is to alter the bodymass distribution. `rand` selects a ran
 
 #### A bit more about the process: dissecting the ModelParameters
 
-Let's dissect the ModelParameters object a bit, to understand just a bit more about what is going on.  Let's look at what params, from our first three-species example above, returned.
+Let's dissect the ModelParameters object a bit, to understand just a bit more about what is going on.
 
 ```{julia}
-params
+params_niche
 ```
-
->  network: FoodWeb(S=3, L=2)
-  environment: Environment(K=[1, nothing, nothing], T=293.15K)
-  biorates: BioRates(d, r, x, y, e)
-  functional_response: BioenergeticResponse
-  producer_competition: ProducerCompetition((3, 3) matrix)
-  temperature_response: NoTemperatureResponse
 
 Walking through this
 
 1. The `network` component defines the food web and reports the number of species and the links
-2. the `environment` component reports on values of the carrying capacity (K) and the baseline temperature (`T`).  Note that K is specified only for the basal species via `[1, nothing, nothing]`.  The presence of the `T` suggests that we can ultimately work with climate change by running the model at different temperatures.  There is a way to make some of the biorates and components of the functional response (see 3, 4) dependent not only on body mass, but also on temperature.
+2. the `environment` component reports on values of the carrying capacity (K) and the baseline temperature (`T`).  Note that K is specified only for the basal species via `[1, 1, ... nothing, nothing]`.  All the producers have the same K at this point (1,1,1...). The presence of the `T` suggests that we can ultimately work with climate change by running the model at different temperatures.  There is a way to make some of the biorates and components of the functional response (see 3, 4) dependent not only on body mass, but also on temperature.
 3. the `biorates` component contains detail on parameters central to making the model reflect a bit of reality: `d` is ...; `r` is the intrinsic rate of increase (population growth rate) for the producers (plants); `x` and `y` are paramters associated with metabolic rates and consumption rates of the consumers (non-plant species).  Finally, `e` is an efficiency/assimilation rate for the consumers eating either plants or other animals.
-4. the `functional_response` component defines the type of _consumption function_ being used (e.g. Type I, II, or III sensu classic ecology and Holling).  The functional response defines the _interaction strength_ between species and how consumers change how much they eat dependent on the amount (density) of resource available.There are two options.  The default `Bioenergetic Response` corresponds to a _phenomenological_ formulation where there are just two variables that describe how consumer consumption varies with resource density: a _half-saturation_ parameter and an _asymptote_.  The alternative called `Classic Response` is more _trait based_ and includes the parameters _attack rate_ and _handling time_.  There are several other features of the functional response that can be manipulated, and these are introduced in later tutorials.  
+4. the `functional_response` component defines the type of _consumption function_ being used (e.g. Type I, II, or III sensu classic ecology and Holling).  The functional response defines the _interaction strength_ between species and how consumers change how much they eat dependent on the amount (density) of resource available.There are two options.  The default `Bioenergetic Response` corresponds to a _phenomenological_ formulation where there are just two variables that describe how consumer consumption varies with resource density: a _half-saturation_ parameter and an _asymptote_.  The alternative called `Classic Response` is more _trait based_ and includes the parameters _attack rate_ and _handling time_.  There are several other features of the functional response that can be manipulated, and these are introduced in later tutorials.
 5. the `producer competition` component allows us to alter how plants compete with each other.
 6. the `temperature response`componewnt defines the absence or presence of temperature dependence, and when present, the shape of the relationship between biorates and functional response parameters and temperature.
 
 ### Helper Functions: What can we do with the outputs?
 
-As noted in the pre-amble, we are most often interested in additional information about the scenarios we build with the models.  These include, for example, total biomass, biodiversity and stability.  Let's see how we can calcuate some of these.
+As noted in the pre-amble, we are most often interested in additional information about the scenarios we build with the models.  These include, for example, total biomass, biodiversity and stability.  Let's see how we can calcuate some of these.  Keep in mind that to use these, we have to provide a model output AND a declaration of over how many time steps we want to calculate the metrics.  For example, we probably want to calculate most of these metrics when the system is at equilibrium.
 
-#### 
+#### Before you start with the helper functions
+
+In order to use these helper functions, we need to know the number of time steps that our model has produced.
+
+It is important to know that 'time' is rather abstract in these models, partly because the integration of the equations to make the dynamics happens at a fine scale.  In order to understand what the number of data points are in your simulation, you can look at the `sim.t` part of the outputs.
+
+The other important thing to note is that the simulation have a built in stop point when the populations get to an equilibrium.  This means that even if we were to ask for n= 100000 time steps, the simulations will stop when this 'rule' is met.
+
+Finally, the algorithm is an adaptive one, so the number of output data points does not match 'time'
+
+We can find out what the number of steps is using the following code.
 
 ```{julia}
-
+size(sim_niche.t) # this has 58 time points
 ```
 
-Further games involve changing `S` and `C`.  The next section will introduce how to do these kinds of changes in a loop, and collect information in a data frame.
+This little trick tells us the max number of time steps we can specify to calculate things, like the average biomass, stability, etc.
+
+#### Using Some Helper Functions
+
+First, we can get a meaure of total biomass in the community
+
+```{julia}
+# we use last = 30 because the max is 58
+total_biomass(sim_niche, last = 30)
+```
+
+Second, we can an estimate of species persistence - how many have gone extinct!  Remember that we started with 20, so a value of 0.6 means that there are 12 species left.
+
+```{julia}
+# here we specify last = 1 to get the estimate of % remaining from the start to end.
+species_persistence(sim_niche, last = 1)
+```
+
+Third, we can look at stability, defined as the coefficient of variation.  Here we look at using all of the data versus using data only out towards where the equilibrium is reached.
+
+```{julia}
+# here we can use ALL of the time steps
+# size(sim_niche.t)[1] gets the actual number
+population_stability(sim_niche, last = size(sim_niche.t)[1])
+
+# here we use only the last 30.
+population_stability(sim_niche, last = 30)
+```
+
+Finally, we can look at two measures of diversity.  First, we can get species richness.  This confirms that our persistence estimate (60%) is in line!
+
+```{julia}
+# con
+foodweb_richness(sim_niche, last = 1)
+```
+
+And we can estimate evenness
+
+```{julia}
+foodweb_evenness(sim_niche; last = 10)
+```
+
+
+### What's next
+
+The next section will introduce how to create simulations where we work with multiple networks and collect data across these. We do this using loops, and collect information in a data frame.  We then work on how to embed additional changes to parameters in the loops as well.
