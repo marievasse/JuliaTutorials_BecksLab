@@ -9,6 +9,10 @@ title-block-banner: true
 jupyter: julia-1.8
 ---
 
+This section of the tutorials initiates you into using the Bioenergetic Food Web Model. 
+
+## Getting the Julia Package
+
 ```{julia}
 #| echo: false
 using DataFrames, Plots, Random, Distributions
@@ -47,6 +51,8 @@ using EcologicalNetworks, EcologicalNetworksPlots, EcologicalNetworksDynamics
 
 ## Time to do some Experiments!
 ```
+
+## Using the Julia Package
 
 ### Preamble: The Bioenergetic Food Web.
 
