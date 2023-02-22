@@ -12,9 +12,10 @@ jupyter: julia-1.8
 ```{julia}
 #| echo: false
 using DataFrames, Plots, Random, Distributions
-using EcologicalNetworks, EcologicalNetworksPlots, BEFWM2
+using EcologicalNetworks, EcologicalNetworksPlots, EcologicalNetworksDynamics
 ```
 
+**Currently Not Available for Guest Users**
 
 Navigate to the [GitHub location for the BioEnergetic Model](https://github.com/BecksLab/EcologicalNetworksDynamics.jl).
 
@@ -98,9 +99,10 @@ sim = simulate(params, B0)
 Eventually you may want to plot the biomass dynamics - the trajectory -  of your community to see what is happening. For our minimal example, it can be done as follows:
 
 ```{julia}
-# create multiple objects: time = t and Bx = biomass for each species
-# note how julia allows multiple things on left of = sign!
-t, B1, B2, B3 = sim.t, sim.B[:,1], sim.B[:,2], sim.B[:,3]; # unpack variables
+# create multiple objects: time = t pulled frpom the sim.t component
+# and Bx = biomass for each species pulled from the larger sim object
+# note how julia allows multiple things on left of the = 
+t, B1, B2, B3 = sim.t, sim[1,:], sim[2,:], sim[3,:]; # unpack variables
 
 # Plot the basal species
 plot(t, B1, lw = 3, label="Producer", xlabel = "Time", ylabel = "Biomass")
@@ -110,6 +112,11 @@ plot!(t, B2, lw = 3, label="Consumer")
 plot!(t, B3, lw = 3, label="Top consumer")
 ```
 
+More generally, you could also just plot the actual `simulate` object directly
+
+```{julia}
+ plot(sim, label = ["Producer" "Consumer" "Top consumer";])
+```
 
 ## A More Complex Example
 
@@ -124,6 +131,7 @@ S = 20; # define the number of species
 C = 0.2; # define the connectance (complexity) of the network
 
 # construct the food web
+Random.seed!(12325) # ensures your network and this one are the same
 foodweb_niche = FoodWeb(nichemodel, S, C=C)
 
 # see it:
@@ -143,7 +151,9 @@ Random.seed!(123)
 B0 = rand(S)
 
 # simulate using params and bodymasses
-sim_niche = simulate(params_niche, B0, stop = 100)
+# note additional argument tmax for max time steps
+# default is 300
+sim_niche = simulate(params_niche, B0, tmax = 50)
 ```
 
 Now we can move to plotting again.  Note how we now ask for the time directly from the simulate object and all of the biomasses from that object as well.
@@ -151,7 +161,7 @@ Now we can move to plotting again.  Note how we now ask for the time directly fr
 Note too how we can supress the legend (which covers some of the time series).
 
 ```{julia}
-plot(sim_niche[:t], (sim_niche[:B]), legend = false)
+plot(sim_niche, legend = false)
 ```
 
 One game to play now is to alter the bodymass distribution. `rand` selects a randon uniform number between 0 and 1.  Can you figure out how to make the distribution uniform between 0 and 10?  See what that does.
