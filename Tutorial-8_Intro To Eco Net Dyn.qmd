@@ -252,7 +252,11 @@ Third, we can look at stability, defined as the coefficient of variation.  Here 
 # here we can use ALL of the time steps
 # size(sim_niche.t)[1] gets the actual number
 population_stability(sim_niche, last = size(sim_niche.t)[1])
+```
 
+Just for perspective, where you estimate stability is under your control.  Here we estimate stability 'out towards the equilibrium' by specifying `last = 30` rather than using the whole time series.  This is the typical approach.
+
+```{julia}
 # here we use only the last 30.
 population_stability(sim_niche, last = 30)
 ```
