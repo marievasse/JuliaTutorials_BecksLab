@@ -1,0 +1,183 @@
+---
+title: "Tutorial 9: Experiments with the BEFWM2"
+date: now
+author: "Danet and Becks, based on originals by Delmas and Griffiths"
+format:
+    html:
+        embed-resources: true
+title-block-banner: true
+jupyter: julia-1.8
+---
+In the previous chapter, we learned how to make networks and run a simulation.  We did this for a simple tri-trophic chain where we specified the network with a matrix of ones and zeros, and for a more complex network defined by the niche model where we specified species richness and connectance.  We also learned how to visualise the simulations and to collect several metrics about the simulations, including detail on biomass, diversity and stability.
+
+In this tutorial, we are going to learn how to do experiments.  We'll learn first how to generate multiple networks and collect information on how network structure impacts our metrics.  Then we'll learn how to manipulate parameters in the model, again collecting information on how variation in these parameters impacts our metrics.
+
+For example, we might be interested in how species richness or connectance impacts biomass and stability.  Or how the carrying capacity of the producers impacts biomass and stability of the community (e.g. bottom up processes).  We'll look at both of these.
+
+### Getting Setup
+
+As with our previous exercises, we need to have a few packages that allow making networks, simulating them and collecting the data
+
+```{julia}
+using DataFrames, Plots, Random, Distributions
+using EcologicalNetworks, EcologicalNetworksPlots, EcologicalNetworksDynamics
+```
+
+### Your (re)introduction to loops: making multiple networks example
+
+One of the tricks to doing experiments is learning how to run a loop.  Julia is super-fast with running loops.  This is a bit different to R, which has a bad rep for loops.  It's not terrible.  But Julia is built to do loops fast.
+
+What we will do here is build a simple loop that makes 3 networks, each with a different species richness, but the same connectance.
+
+```{julia}
+Random.seed!(12325) # ensures your network and this one are the same
+
+S = [10,20,30]; # define the number of species
+C = 0.2; # define the connectance (complexity) of the network
+
+# collection zone for the networks
+nets = []
+
+# construct the food webs
+# we loop over the 3 values of S
+# we use push!() to add the food webs to nets
+# always start with a for and end with an end.
+for i in 1:3
+    push!(nets, FoodWeb(nichemodel, S[i]; C=C, tol = 0.01))
+end
+```
+
+Great.  Let's see if we got what we expected in nets.
+
+```{julia}
+nets
+```
+
+Magnificent, we have three networs and that's a win.  We also see that they are each for a different and appropriate S.  Win no. 2.  We can actually now check to see what the connectances actually are. Again, we'll use a loop, `println` and introduce you to the details of the `FoodWeb` object.
+
+First, let's look at one of the networks.
+
+```{julia}
+nets[1]
+```
+
+We can see that the `A` element is the matrix and you can guess that the `M` is the body `M`asses.  We also find tha there are 3 producers and 7 invertebrates and it is derived from the niche model
+
+> a side note on the metabolic classes.  The default parameterisation, and nearly all of the published work with the BEFW, uses invertebrates for all the non-producer species.  It is possible to include others.  But the data, currently, are not helpful (low volume) in supporting robust inference with these types of species.
+
+Now, recall that we can look specifically at the matrix by using `nets[1].A` which grabs the `A` part.  We can also remember that `sum` applied to a matrix counts all the 1's.... thus is the estimate of the links.  Finally, recall that `size` applied to the network returns two numbers - the rows and columns.  For our networks, the matrix is square.  So grabbing one of these (rows = [1]) and squaring it delivers our 'potential number of links' (e.g. $species^2$).  We can put that all together here to define connectance as $Con = links/S^2$
+
+```{julia}
+for i in 1:3
+    println(sum(nets[i].A)/size(nets[i].A)[1]^2)
+    end
+```
+
+#### Different ways to run loops.
+
+There is another way to make this set of networks.  Here we use a `while` loop to create 3 networks with the same species richness and connectance.  We might need to do this to generate _replicates_.  This is a good exercise with the **niche model** as it reminds you that it is a probabilistic tool... you can get several networks with the same S and C, but the links will be in slightly different places.
+
+`while` loops work on conditions... for example, if we want three networks, we could ask that the loop keep working to make the networks until we have three.  To do this, we need a _monitoring_ variable that lets us assess where we are against our target.
+
+Lets see how to do that.
+
+```{julia}
+# how many replicates do we want?
+reps = 3
+
+begin
+	# list to store networks
+	global networks = []
+	# monitoring variable l (the letter l)
+	global l = length(networks)
+
+    # while loop
+	while l < reps # reps is 3 here...
+	    # generate a network
+	    A = FoodWeb(nichemodel, 20; C=0.15, tol = 0.01)
+	    # add the network to the set
+        push!(networks, A)
+        # update the monitor
+	    global l = length(networks)
+	end
+end
+```
+
+The term `global` means that the obects are made available in our global environment and should be there for us to see.  If you look closely at the mini-matrices, you'll see they are all different in micro-structure, despite having the same number of links and the same connectance.
+
+> NOTE: the presentation of the matrix is very specific here... the rows correspond to the predators and the columns the resources.  Obstensibly, the ranking is by body size, so small things are at the upper left.  This view shows that big things tend to eat small and big things, while small things eat small.  Historically, the reflection (pivot around the diagnol) has also been used, where the predators are the columns and the resources the rows.  This lead to a 'feature' of real and theoretical networks aligning, call `upper triangularity`.  In this latter presentation, most of the links would be in the upper triangle.  In the current presentation, the links are in the lower triangle.  So we can just call the feature `triangularity`.  The niche model reproduces this triangularity.
+
+```{julia}
+networks
+```
+
+```{julia}
+networks[1].A
+```
+
+```{julia}
+networks[2].A
+```
+
+```{julia}
+networks[3].A
+```
+
+### Linking the networks to the Ecological Networks Dynamics
+
+Fantastic.  Now you are ready for the next steps.  We want to run the `EcologicalNetworksDynamics` model on each of these networks.  Furthermore, we want to collect the biomass and stability information for all three into a data frame.  Let's see how we do that.
+
+#### Step 1: Create the collecting data frame
+
+First, we create the holding pen for our information.  We'll construct a data frame to collect five pieces of information: the network id (1,2 or 3), species richness at the start (our initial S), species richness at the end, total biomass at the end and stability at the end.
+
+```{julia}
+outputs = DataFrame(Network = [], Init_Rich = [], Fin_Rich = [], Tot_biomass = [], Stability = [])
+```
+
+#### Step 2: use the pre-defined networks
+
+We can use our `nets` object from above now.  Each of these networks has a different species richness.
+
+```{julia}
+for i in 1:3
+
+    # prep: define size of network
+    S = size(nets[i].A)[1]
+
+    # deliver some progress reporting
+    println("\nThis is network: ", i, "with species richness = ", S,"\n")
+
+    # step A: define model paramters
+    params = ModelParameters(nets[i])
+
+    # step B: define body mass
+    B0 =  rand(S)
+
+    # step C: simulate
+    out = simulate(params, B0)
+
+    # steps D: calculate metrics
+    fin_rich = foodweb_richness(out, last = 1)
+    fin_biomass = total_biomass(out, last = 20)
+    stability = population_stability(out, last = 20)
+
+    # step E: add things to the data frame
+    # note the first arg is the data frame and then
+    # the values we want allocated to the five slots
+    # are in []
+    push!(outputs, [i, S, fin_rich, fin_biomass, stability])
+end
+```
+
+Amazing.  Let's see if what we wanted collected has ended up in our data frame.  Wonderful! Splendiferous.  Fantabulous.
+
+```{julia}
+println(outputs)
+```
+
+#### Dissecting more from simulate
+
+> Note the details on extinctions....
+
+###
