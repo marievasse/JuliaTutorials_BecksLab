@@ -28,6 +28,7 @@ website:
       - section: "Intro to the BEFW model"
         contents:
           - Tutorial-8_Intro To Eco Net Dyn.qmd
+          - Tutorial-9_Experiments with the BEFWM2.qmd
 
 format:
   html:
