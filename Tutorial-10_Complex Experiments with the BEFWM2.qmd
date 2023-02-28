@@ -1,5 +1,5 @@
 ---
-title: "Tutorial 9: Experiments with the BEFWM2"
+title: "Tutorial 10: Complex Experiments with the BEFWM2"
 date: now
 author: "Danet and Becks, based on originals by Delmas and Griffiths"
 format:
@@ -95,6 +95,8 @@ Let's first look at a single plot of stability
     legend = false)
 ```
 
+Now some new ploting tricks... 3 plots in a layout.
+
 ```{julia}
 p1 = @df df_collect plot(:K, [:FinalStability], group = :Z, 
     legend = :bottomright,
@@ -104,13 +106,13 @@ p1 = @df df_collect plot(:K, [:FinalStability], group = :Z,
 
 p2 = @df df_collect plot(:K, [:FinalBiomass], group = :Z, 
     legend = :bottomright,
-    ylabel = "Stabilty", 
+    ylabel = "Biomass", 
 	xlabel = "Karrying Kapacity",
     seriestype = [:scatter, :line])
     
 p3 = @df df_collect plot(:K, [:FinalRichness], group = :Z, 
     legend = :bottomright,
-    ylabel = "Stabilty", 
+    ylabel = "Richness", 
 	xlabel = "Karrying Kapacity",
     seriestype = [:scatter, :line])
 
