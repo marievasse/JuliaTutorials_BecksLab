@@ -1,0 +1,123 @@
+---
+title: "Tutorial 9: Experiments with the BEFWM2"
+date: now
+author: "Danet and Becks, based on originals by Delmas and Griffiths"
+format:
+    html:
+        embed-resources: true
+title-block-banner: true
+jupyter: julia-1.8
+---
+
+The previous tutorial focused on experiments where we manipulated the number of networks and various network parameters.  This is one set of things we can change/vary in an _in silico_ experiment.  The other set of things we can change are features of the model, such as the shape of the functional response (see Tutorial 7), features of the environment such as the carrying capacity, or even empirical relationships that drive trophic structure and interaction strengths, such as the predator-prey mass ratio.
+
+In this tutorial, we are going to implement three experiments.  The first two will be 'simple' in that they vary only two things.  The final example will implement a large experiment changing five features of the model.
+
+You may want to start a new script in the project.  We'll need the following packages (they are already installed... so we just need `using`).
+
+```{julia}
+using EcologicalNetworksDynamics
+using Random, Plots, Distributions, DataFrames, StatsPlots
+using EcologicalNetworksPlots, EcologicalNetworks
+```
+
+### Experiment 1: Carrying Capacity and the Predator Prey Mass Ratio
+
+Now we are set for our first experiment.  Lets first establish the parameters we need to make the food web and do the experiment.  We fix `S` at 20 and `C` at 0.15.  We then create vectors of Z and K.  
+
+Z is the predator - prey mass ratio, and defines how much bigger or smaller the predators are from their prey. The data suggest it is between predators are between 10 and 100 times bigger than their prey [see Brose et al 2006](https://doi.org/10.1890/0012-9658(2006)87[2411:CBRINF]2.0.CO;2). This value interacts with setting trophic levels in the model. 
+
+The default setting for the models is 1 - i.e. all species are within the same order of magnitude, predators are not bigger than their prey.  Here, we creat a vector of values to explore, from predators being smaller, to them being 10 or 100 x larger as the data suggests.
+
+MORE ON HOW THE PPMR interacts with Trophic level?
+
+```{julia}
+#Fixed Parameters
+S = 20
+C = 0.15
+
+# Variable Parameters
+Z_levels = [0.1, 1, 10, 100]
+K_levels = [0.1, 1, 10, 100]
+
+# run this to get same results as in the document
+Random.seed!(123)
+```
+
+Now, lets set up the collecting data frame.
+
+```{julia}
+df_collect = DataFrame(Z = [], K = [], FinalRichness = [], FinalBiomass = [], FinalStability = [])
+```
+
+Now, set up the loop to use these variables and generate outputs
+
+```{julia}
+for z in Z_levels
+    for k in K_levels
+
+        println(" ***> This is iteration with Z = $z and K = $k\n")
+
+        fw = FoodWeb(nichemodel, S; C, Z = z)
+        Environment(fw, K = k)
+
+        B0 = rand(S)
+        params = ModelParameters(fw)
+
+        out = simulate(params, B0)
+
+        # collect info
+        fin_rich = foodweb_richness(out, last = 30)
+        fin_bio = total_biomass(out, last = 30)
+        stab = population_stability(out, last = 30)
+
+        push!(df_collect, [z, k, fin_rich, fin_bio, stab])
+    end
+end
+```
+
+Wonderful.  Now we are in a position to learn about two new plotting methods.  First, let's look at the data frame we've created.
+
+```{julia}
+df_collect
+```
+
+#### Visualising the experiment
+
+One option here is to plot one of our `Final` Objects as the response variable against the valuse of Z and K.  In R, we'd use ggplot2. Here we'll use `StatsPlots` as we learned about in Tutorial 5.  Can you make this work in the regular `Plots` syntax?
+
+Let's first look at a single plot of stability
+```{julia}
+@df df_collect plot(:K, [:FinalStability], group = :Z, 
+    ylabel = "Stabilty", 
+	xlabel = "Karrying Kapacity",
+    seriestype = [:scatter, :line],
+    legend = false)
+```
+
+```{julia}
+p1 = @df df_collect plot(:K, [:FinalStability], group = :Z, 
+    legend = :bottomright,
+    ylabel = "Stabilty", 
+	xlabel = "Karrying Kapacity",
+    seriestype = [:scatter, :line])
+
+p2 = @df df_collect plot(:K, [:FinalBiomass], group = :Z, 
+    legend = :bottomright,
+    ylabel = "Stabilty", 
+	xlabel = "Karrying Kapacity",
+    seriestype = [:scatter, :line])
+    
+p3 = @df df_collect plot(:K, [:FinalRichness], group = :Z, 
+    legend = :bottomright,
+    ylabel = "Stabilty", 
+	xlabel = "Karrying Kapacity",
+    seriestype = [:scatter, :line])
+
+# create a layout of 3 graphs stacked on top of each other.
+plot(p1, p2, p3, layout=(3,1), legend = false)
+```
+
+
+
+### Interpretation!
