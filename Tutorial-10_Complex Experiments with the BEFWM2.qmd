@@ -126,6 +126,11 @@ p3 = @df df_collect plot(:K, [:FinalRichness], group = :Z,
 plot(p1, p2, p3, layout=(3,1), legend = false)
 ```
 
-
-
 ### Interpretation!
+
+#### Challenge - can you get the number of extinctions into the data frame?
+
+### Experiment 2: The Functional Response
+
+### Experiment 3: S-C-K-Z-FR
+
