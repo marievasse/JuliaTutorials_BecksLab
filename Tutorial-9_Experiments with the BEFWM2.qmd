@@ -178,6 +178,58 @@ println(outputs)
 
 #### Dissecting more from simulate
 
-> Note the details on extinctions....
+Note the details on extinctions that comes from a model run.  For example, let's revisit our `sim_niche` object (you won't necessarily have to re-run this if you are working in one big script)
 
-###
+```{julia}
+S = 20; # define the number of species
+C = 0.2; # define the connectance (complexity) of the network
+
+# construct the food web
+Random.seed!(12325) # ensures your network and this one are the same
+foodweb_niche = FoodWeb(nichemodel, S, C=C)
+
+# construct the equations and fixed parameters
+params_niche = ModelParameters(foodweb_niche)
+
+# define bodymasses between 0 and 1 and get S = 20 of them.
+Random.seed!(123)
+B0 = rand(S)
+
+# simulate using params and bodymasses
+# note additional argument tmax for max time steps
+# default is 300
+sim_niche = simulate(params_niche, B0)
+```
+
+We've constucted a helper function to get information on which species go extinct and when they do.
+
+```{julia}
+# collect and organise extinctons
+extinctions = get_extinct_species(sim_niche)
+```
+
+This is a `Dict` object.  The numbers on the left of the `=>` are known as the `keys` and the numbers on the right are `values`.  We can create a mini- data frame out of this with the following code.  `key` and `values` are actually _extractor_ functions and `collect` is translating the extracted information into a vector.
+
+```{julia}
+# create a data frame of extinctions
+ee1 = DataFrame(who = collect(keys(extinctions)), when = collect(values(extinctions)))
+```
+
+Now we can try and add this information to the plot.  For the time being, we'll focus on adding the times that each of these species goes extinct to our figure.  To do this we need to access the extinction time column (`when`), add a bit of noise/jitter so that times that are really close together can be seen on our x-axis, and then plot these as points with coordinates `x = when` and `y = 0`.
+
+```{julia}
+# add some jitter for close together events
+exts = ee1[:,2] .+rand.()
+
+# plot
+plot(sim_niche)
+# add jittered extinction events.
+plot!(exts, zeros(size(ee1[:,1])), seriestype = :scatter, legend = false)
+
+```
+
+Pretty cool!
+
+### What's next
+
+In the next chapter, you'll be creating larger experiments with loops over actual parameters in the model, including the predator-prey size ratio, values of carry capacity and the predator-prey size ratio.
