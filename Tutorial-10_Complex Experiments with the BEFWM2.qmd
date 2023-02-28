@@ -50,7 +50,13 @@ Now, lets set up the collecting data frame.
 df_collect = DataFrame(Z = [], K = [], FinalRichness = [], FinalBiomass = [], FinalStability = [])
 ```
 
-Now, set up the loop to use these variables and generate outputs
+Now, set up the loop to use these variables and generate outputs. Notice that we use `for z in Z_levels` - this is a clever trick of the looping method, where `z` simply iterates over the values of `Z_levels` without having to specify the index value (e.g. no use of `Z_levels[i]` etc).
+
+The significant BIG thing here is the new `Environment` function which allows us to set things like the carrying capacity (K) of the resources and Temperature (more on that in later tutorials).  Here we use it to define custom values of the K paramter for carrying capacity, drawing on the values in the `K_levels` above.
+
+Note too our use of `println` and the values of `Z` and `K` to produce an informative _break_ between each combination.
+
+> Can you guess what increasing K will do to the biomass and richness of the community at equlibrium?  How about Z?  Will higher Z make things more or less stable?
 
 ```{julia}
 for z in Z_levels
