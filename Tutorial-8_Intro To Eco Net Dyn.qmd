@@ -123,7 +123,7 @@ Eventually you may want to plot the biomass dynamics - the trajectory -  of your
 # create multiple objects: time = t pulled frpom the sim.t component
 # and Bx = biomass for each species pulled from the larger sim object
 # note how julia allows multiple things on left of the =
-t, B1, B2, B3 = sim.t, sim[1,:], sim[2,:], sim[3,:]; # unpack variables
+t, B1, B2, B3 = sim.t, sim[1,:], sim[2,:], sim[3,:] # unpack variables
 
 # Plot the basal species
 plot(t, B1, lw = 3, label="Producer", xlabel = "Time", ylabel = "Biomass")
@@ -136,7 +136,7 @@ plot!(t, B3, lw = 3, label="Top consumer")
 More generally, you could also just plot the actual `simulate` object directly.  Much easier!
 
 ```{julia}
- plot(sim, label = ["Producer" "Consumer" "Top consumer";])
+ plot(sim, label = ["Producer" "Consumer" "Top consumer"])
 ```
 
 ## A More Complex Example
@@ -148,12 +148,12 @@ In order to run the BEFW model with a more complex network, we have to construct
 Note that we are now using functionality provided by the `EcologicalNetworks` package.
 
 ```{julia}
-S = 20; # define the number of species
-C = 0.2; # define the connectance (complexity) of the network
+S = 20 # define the number of species
+C = 0.2 # define the connectance (complexity) of the network
 
 # construct the food web
 Random.seed!(12325) # ensures your network and this one are the same
-foodweb_niche = FoodWeb(nichemodel, S, C=C)
+foodweb_niche = FoodWeb(nichemodel, S; C=C)
 
 # see it:
 foodweb_niche.A

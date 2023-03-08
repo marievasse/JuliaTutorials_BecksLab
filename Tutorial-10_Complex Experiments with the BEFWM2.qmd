@@ -132,5 +132,150 @@ plot(p1, p2, p3, layout=(3,1), legend = false)
 
 ### Experiment 2: The Functional Response
 
-### Experiment 3: S-C-K-Z-FR
+The functional response is the relationship between how much a consumer eats and the 'density' of the prey items.  If you can recall from your ecology courses/classes/modules, there are three classic shapes: The Type I, Type II and Type III.
+
+A predator feeding with a Type I delivers to the prey a 'constant mortality rate' (the slope of the Type I line).  This means that the effect of predation is density _independent_ because prey mortality rate does not vary by prey density.  Remember, density dependence (negative feedback that stabilises communities) is defined by survival decreasing with increasing density, or in this case, mortality rates _increasing_ with increasing density.
+
+A predator feeding with the Type II delivers an _inverse density dependent_ mortality rate.  The slope of the Type II line actually goes down as density of the prey goes up meaning that mortality rates for the prey, caused by the predator, are going down with prey density.  This means that the effect of predation is _inverse density dependent_ in the Type II.  This is **destabilising**.
+
+Finally, a predator feeding via a Type III can deliver a _density dependent_ mortality rate to the prey, but only at low prey densities.  This is an S shaped curve.  Below the inflection point, the slope is actually getting steeper.  This means that as prey density increases up to the inflection, their mortality rate from predation inceases (survival goes down with density going up). This is the hallmark of density dependence and can **stabilise** consumer-resource interactions.
+
+> Remember that the logistic growth equation, with a carying capacity specified, is also a source of _density dependent negative feedback_
+
+> Remember No. 2: The Type II is the MOST common.  Type I is rare and even non-existent because it suggests there are no limits to how much a consumer can eat.  Type III is also rare, but it is at least plausible and interesting.
+
+```{julia}
+#| echo: false
+
+f_t1(n) = 0.5*n
+f_t2(n) = 0.5*n/(0.2+0.01*n)
+f_t3(n) = 0.5*n^2/(10 + 0.01*n^2)
+
+plot(f_t1, 0, 100, label = "Type I")
+plot!(f_t2, 0, 100, label = "Type II")
+plot!(f_t3, 0, 100, label = "Type III")
+```
+
+#### How does the BEFW make a functional response?
+
+There are two formulations of the functional response.  One of them is called the _Bioenergetic_ response and the other is called the _Classic_.  In both cases, we ignore the Type I.
+
+The Bioenergetic functional response is deeply phenomenological in that the parameters that make the shapes move between Type II and III have no deliberate biological interpretation.  They function is defined by a 1/2 saturation point, an asymptote (which is nominally a maxiumum feeding rate) and an exponent, which is called the _hill exponent_.  The value of the exponent moves the model from Type II (h = 1) to Type III (h = 2).  The other variables define the overall shape.
+
+The Classic functional less phenomenological in that the response is defined more by 'traits': the attack rate of a consumer on a prey and the handling time of that prey.  But it also moves between the Type II and Type III shape based on an exponent.
+
+#### Creating Type II vs. Type III with the Bioenergetic response
+
+Let's look at using the Bioenergetic functional response, and see here how we can vary the shape between Type II and Type III. The argument to make this happen is the `h` argument, which stands for the _hill exponent_. We will look at how Richness, Biomass and Stability are affected by the hill exponent.
+
+One of the key things to note in the code is this block:
+
+```{julia}
+#| eval: false
+
+    # make the network
+    # Note that we specify the Environment, but there is no K or T set (using defaults)
+    # Note the new BioenergeticResponse function
+    fw_h = FoodWeb(nichemodel, S; C)
+    E = Environment(fw_h)
+    F = BioenergeticResponse(fw_h, h = h)
+```
+
+As we learned above, the `Environment` fucntion allows is to define `K` and `T`.  Here we see also that we can define the functional response function (`BioenergeticResponse`) which allows us to define specific parameters in that function (i.e. `h`).  These are both then used in the `model_parameters` function later.  
+
+> Note that we are not setting any parameters for the `Environment` here... it's there to prepare for the challenge exercise after this.
+
+Let's see it all put together
+
+```{julia}
+
+Random.seed!(12352)
+
+# fixed parameters
+S = 20
+C = 0.15
+
+# set the hill exponent to move from Type II to Type III)
+h_levels = [1.0, 1.1, 1.25, 2.0]
+
+# set collecting data frame 
+# we will look at how Richness, Biomass and Stability are affected by the hill exponent
+df_collect_h = DataFrame(h = [], FinalRichness = [], FinalBiomass = [], FinalStability = [])
+
+# create look across values of h
+for h in h_levels 
+    println("***> This is iteration with h = $h\n")
+    
+    # make the network
+    # Note that we specify the Environment, but there is no K or T set (using defaults)
+    # Note the new BioenergeticResponse function
+    fw_h = FoodWeb(nichemodel, S; C)
+    E = Environment(fw_h)
+    F = BioenergeticResponse(fw_h, h = h)
+    
+    # set body sizes and parameters 
+    B0 = rand(S)
+    params = ModelParameters(fw_h, functional_response = F, environment = E)
+
+    # simulate dynamics
+    out_h = simulate(params, B0)
+
+    # collect data 
+    fin_rich = foodweb_richness(out_h, last = 30)
+    fin_bio = total_biomass(out_h, last = 30)
+    stab = population_stability(out_h, last = 30)
+
+    push!(df_collect_h, [h, fin_rich, fin_bio, stab])
+end
+
+df_collect_h
+```
+
+Now, we can visualise these data
+
+```{julia}
+# Visualize the results
+p1_h = @df df_collect_h plot(:h, [:FinalStability],
+    legend = :bottomright,
+    ylabel = "Stability",
+    xlabel = "Functional response",
+    seriestype = [:scatter, :line])
+
+p2_h = @df df_collect_h plot(:h, [:FinalBiomass],
+    legend = :bottomright,
+    ylabel = "Biomass",
+    xlabel = "Functional response",
+    seriestype = [:scatter, :line])
+
+p3_h = @df df_collect_h plot(:h, [:FinalRichness],
+    legend = :bottomright,
+    ylabel = "Richness",
+    xlabel = "Functional response",
+    seriestype = [:scatter, :line])
+
+plot(p1_h, p2_h, p3_h, layout=(3,1), legend = false, size = (1000, 1000))
+```
+
+#### INTERPRETATION?
+
+What can you see happening as we move away from the destabilising Type II functional response?
+
+Can you modify this code to explore what happens at differnt values of K? You'll need to modify this section, and the collection data frame.
+
+```{julia}
+#| eval: false
+
+   # make the network
+    fw_h = FoodWeb(nichemodel, S; C)
+    E = Environment(fw_h)
+
+    # set body sizes and parameters 
+    B0 = rand(S)
+    F = BioenergeticResponse(fw_h, h = h)
+    params = ModelParameters(fw_h, functional_response = F, environment = E)
+```
+
+### Experiment 3: What is Z
+
+### Experiment 4: S-C-K-Z-FR
 

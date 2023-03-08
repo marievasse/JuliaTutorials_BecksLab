@@ -50,7 +50,7 @@ A few details to note.
 
 ### How does this relate to the Bioenergetic Food Web Model?
 
-The complex model of consumer - resource interactions that is represented by the `BEFW` model has at it's heart two equations: one for producers and one for consumers.  So at it's heart, it is not too different in structure to the model above!  However, the differences, spelled out in this [paper] and this [paper], are 
+The complex model of consumer - resource interactions that is represented by the `BEFW` model has at it's heart two equations: one for producers and one for consumers.  So at it's heart, it is not too different in structure to the model above!  However, the differences, spelled out in this [paper](https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.12713) and this [paper](https://indico.ictp.it/event/a08145/session/28/contribution/17/material/0/4.pdf), are 
 
 - the paramters are functions of body size
 - because of this, we can expand the number of resource and consumer equations for multiple values of body size
