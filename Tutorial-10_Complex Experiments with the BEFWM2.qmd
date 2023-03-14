@@ -360,3 +360,93 @@ Could you modify this to ask about the interaction between Z and K?  This would 
 
 ### Experiment 4: Manipulating Competition among producers
 
+Our final experiment for this section involves manipulating how the basal producers compete with each other.  The default paramterisation of the model has each producer growing via the logistic equation and competing with itself via density dependence.  There is only intraspecific competition, no interspecific competition.
+
+We can modify this assumption by invoking another function called `ProducerCompetition`.  This function acts like `Environment` that we use to set `K` and `BioenergeticResponse` that we used to modify the functional response between Type II and Type III.
+
+The theory to recall is that coexistence among species is mediated by the balance between intraspecific and interspecific competition.  When intraspecific competition is greater than interspecific competition, there is coexistence.  However, when interspecific competition is greater than intraspecific competition, there will be compeitive exclusion and no coexistence.  
+
+We call the competition parameters $\alpha$. $\alpha~ii$ defines intraspecific competition and $\alpha~ij$ defines interspecific competition.  The $\alpha~ij$ defines how the species $j$ reduces the carrying capacity (equilibrium) of species $i$.  
+
+What we can do is set $\alpha~ii = 1$ and then vary $\alpha~ij$ from $<1$ to $>1$.  We can expect that there will a dramatic change in biomass and species richness as we move from $alpha~ii > alpha~ij$ to $alpha~ii < alpha~ij$.
+
+
+```{julia}
+S = 20 # define the number of species
+C = 0.2 # define the connectance (complexity) of the network
+Z = 100 # Predator Prey Mass Ratio
+
+# here we set the 
+interspecific_vals = 0.8:0.05:1.2 # a set of (9) values between 0.8 and 1.2 in steps of 0.05
+# collect(0.8:0.05:1.2) # see them if you want to
+
+
+# set collecting data frame 
+# we will look at how Richness, Biomass and Stability are affected by the hill exponent
+df_collect_comp = DataFrame(InterComp = [], FinalRichness = [], FinalBiomass = [], FinalStability = [])
+
+for alpha_ij in interspecific_vals
+    println("***> This is iteration with alpha_ij = $alpha_ij\n")
+    
+    # this will make always the same network and body mass
+    Random.seed!(123)
+    foodweb = FoodWeb(nichemodel, S, C = C, tol_C = 0.01, Z = Z)
+
+    # enhance detail in the network
+    # we specify E and F as before to re-enforce our understanding
+    E = Environment(foodweb, K = 10)
+    F = BioenergeticResponse(foodweb, h = 1)
+
+    # we specify competition here
+    # we fix intraspecific and variy interspecific
+    Comp = ProducerCompetition(foodweb; αii = 1, αij = alpha_ij)
+
+    # define parameters with extras
+    params_comp = ModelParameters(foodweb, environment = E, functional_response = F, producer_competition = Comp)
+
+    # set bodymass
+    B0 = rand(S)
+
+    # simulate
+    # note verbose = false ; remove this to see extinction detail for each sim
+    out_comp = simulate(params_comp, B0, verbose = false)
+
+    # generate stats and add to collector
+    # collect data 
+    fin_rich = foodweb_richness(out_comp, last = 30)
+    fin_bio = total_biomass(out_comp, last = 30)
+    stab = population_stability(out_comp, last = 30)
+
+    push!(df_collect_comp, [alpha_ij, fin_rich, fin_bio, stab])
+end
+
+df_collect_comp
+```
+
+Let's review the assumptions above.  We've set the `Predator Prey Mass Ratio` to 100.  We've set carrying capacity `K` to 10.  We've set the functional response `h` value to 1, so it's a Type II functional response.  Finally, we've set a range of interspecific competition to be 0.8 to 1.2 around the fixed intraspecific effect of 1.
+
+
+```{julia}
+p1 = @df df_collect_comp plot(:InterComp, [:FinalRichness],
+    ylabel = "Richness",
+    xlabel = "alpha_ij")
+p2 = @df df_collect_comp plot(:InterComp, [:FinalBiomass],
+    ylabel = "Biomass",
+    xlabel = "alpha_ij")
+p3 = @df df_collect_comp plot(:InterComp, [:FinalStability],
+    ylabel = "Stability",
+    xlabel = "alpha_ij")
+
+plot(p1, p2, p3, layout = (3,1), legend = false)
+```
+
+#### Challenge - Compeition
+
+Perhaps consider expanding the code above to assess one of these?
+
+Is this pattern sensitive to specie richness?
+Is this pattern sensitive to the functional response?
+Is this pattern sensitive to the PPMR?
+Is this pattern sensitive to values of K?
+
+## Experiment 5: Multiple networks (replicates)
