@@ -243,5 +243,12 @@
     "title": "Tutorial 3: Building and Working with DataFrames",
     "section": "The CSV",
     "text": "The CSV\nAs with R, there are functions to read and write .csv files to and from dataframes. This makes interoperability with tools in R and standard data storage file formats easy.\nTo write our daphnia data to a csv file, we use a familiar syntax, but a function from the CSV package.\n\nCSV.write(\"daphniadata.csv\", dat2)\n\nOf course, you can read files in using…. yes, CSV.read. Note the second argument declares the data to go into a data frame.\n\ndaph_in = CSV.read(\"betterDaphniaData.csv\", DataFrame)"
+  },
+  {
+    "objectID": "Tutorial-1_Downloads Setups and Your First Project.html#downloading-and-installing-julia-and-vscode",
+    "href": "Tutorial-1_Downloads Setups and Your First Project.html#downloading-and-installing-julia-and-vscode",
+    "title": "Tutorial 1: Downloads, Setups and Your First Project",
+    "section": "Downloading and Installing Julia and VSCode",
+    "text": "Downloading and Installing Julia and VSCode\nJulia\nNavigate to this page and follow the platform-specific instructions to dowload and install Julia (we recommend installing the current stable release).\nDuring the installation process, you may be prompted to add Julia to the PATH, this box should be ticked.\nVSCode\nNavigate to this page to dowload and install your platform specific Visual Studio Code (not Visual Studio or Visual Studio for Mac)."
   }
 ]

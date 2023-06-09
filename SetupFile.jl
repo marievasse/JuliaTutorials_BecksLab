@@ -68,3 +68,8 @@ Conda.add("jupyter-cache")
 
 # Pkg.add(path = "/Users/apb/Documents/GitHubREPOS/BEFWM2/")
 Pkg.develop(path = "/Users/apb/Documents/EcologicalNetworksDynamics.jl-main/")
+
+# run this before updating to new dev
+# EcologicalNetworksDynamics.jl-ni_usecase
+# Pkg.rm("EcologicalNetworksDynamics")
+# ] dev ~/Documents/EcologicalNetworksDynamics.jl-ni_usecase

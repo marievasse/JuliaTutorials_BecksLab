@@ -119,4 +119,3 @@ Of course, you can read files in using.... yes, `CSV.read`.  Note the second arg
 
 daph_in = CSV.read("betterDaphniaData.csv", DataFrame)
 ```
-

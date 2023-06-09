@@ -19,7 +19,27 @@ using DataFrames, Plots, Random, Distributions
 using EcologicalNetworks, EcologicalNetworksPlots, EcologicalNetworksDynamics
 ```
 
+**FOR ALL USERS AS OF JUNE 2023**
+
+Navigate to the shared google drive.
+**Copy** (e.g. do NOT drag) `EcologicalNetworksDynamics.jl-ni_usecase` from the drive folder to your Documents folder
+
+In the Julia REPL, type
+
+`using Pkg`
+
+Then, enter the package management zone by typing `]`
+Finally enter this detail.
+
+Mac:
+`dev ~/Documents/EcologicalNetworksDynamics.jl-ni_usecase`
+
+PC
+`dev C:/Users/YOURUSERNAME/Documents/EcologicalNetworksDynamics.jl-ni_usecase`
+
+
 **Currently Not Available for Guest Users**
+**DO NOT USE - Move to ## Setting Up to Use the Ecological Networks Dynamics modelling**
 
 Navigate to the [GitHub location for the BioEnergetic Model](https://github.com/BecksLab/EcologicalNetworksDynamics.jl).
 
@@ -38,6 +58,9 @@ Once this folder is unzipped in your Documents Folder, you can _install_ it usin
 using Pkg
 Pkg.develop(path = "~/Documents/EcologicalNetworksDynamics.jl-main/")
 ```
+
+## Setting Up to Use the Ecological Networks Dynamics modelling
+
 
 And now, you are ready to construct a script using the modelling tools!
 
@@ -117,6 +140,12 @@ sim = simulate(params, B0)
 
 #### Step 4: Seeing the outputs!
 
+To plot the time series, we can use the actual `simulate` object directly.
+
+```{julia}
+ plot(sim, label = ["Producer" "Consumer" "Top consumer";])
+```
+
 Eventually you may want to plot the biomass dynamics - the trajectory -  of your community to see what is happening. For our minimal example, it can be done as follows:
 
 ```{julia}
@@ -133,11 +162,6 @@ plot!(t, B2, lw = 3, label="Consumer")
 plot!(t, B3, lw = 3, label="Top consumer")
 ```
 
-More generally, you could also just plot the actual `simulate` object directly.  Much easier!
-
-```{julia}
- plot(sim, label = ["Producer" "Consumer" "Top consumer";])
-```
 
 ## A More Complex Example
 
@@ -205,7 +229,7 @@ Walking through this
 2. the `environment` component reports on values of the carrying capacity (K) and the baseline temperature (`T`).  Note that K is specified only for the basal species via `[1, 1, ... nothing, nothing]`.  All the producers have the same K at this point (1,1,1...). The presence of the `T` suggests that we can ultimately work with climate change by running the model at different temperatures.  There is a way to make some of the biorates and components of the functional response (see 3, 4) dependent not only on body mass, but also on temperature.
 3. the `biorates` component contains detail on parameters central to making the model reflect a bit of reality: `d` is ...; `r` is the intrinsic rate of increase (population growth rate) for the producers (plants); `x` and `y` are paramters associated with metabolic rates and consumption rates of the consumers (non-plant species).  Finally, `e` is an efficiency/assimilation rate for the consumers eating either plants or other animals.
 4. the `functional_response` component defines the type of _consumption function_ being used (e.g. Type I, II, or III sensu classic ecology and Holling).  The functional response defines the _interaction strength_ between species and how consumers change how much they eat dependent on the amount (density) of resource available.There are two options.  The default `Bioenergetic Response` corresponds to a _phenomenological_ formulation where there are just two variables that describe how consumer consumption varies with resource density: a _half-saturation_ parameter and an _asymptote_.  The alternative called `Classic Response` is more _trait based_ and includes the parameters _attack rate_ and _handling time_.  There are several other features of the functional response that can be manipulated, and these are introduced in later tutorials.
-5. the `producer competition` component allows us to alter how plants compete with each other.
+5. the `producer_growth` details the default that all plants are growing logistically.
 6. the `temperature response`componewnt defines the absence or presence of temperature dependence, and when present, the shape of the relationship between biorates and functional response parameters and temperature.
 
 ### Helper Functions: What can we do with the outputs?
@@ -236,7 +260,7 @@ First, we can get a meaure of total biomass in the community
 
 ```{julia}
 # we use last = 30 because the max is 58
-total_biomass(sim_niche, last = 30)
+biomass(sim_niche, last = 4).total
 ```
 
 Second, we can an estimate of species persistence - how many have gone extinct!  Remember that we started with 20, so a value of 0.6 means that there are 12 species left.
@@ -246,32 +270,31 @@ Second, we can an estimate of species persistence - how many have gone extinct! 
 species_persistence(sim_niche, last = 1)
 ```
 
-Third, we can look at stability, defined as the coefficient of variation.  Here we look at using all of the data versus using data only out towards where the equilibrium is reached.
-
-```{julia}
-# here we can use ALL of the time steps
-# size(sim_niche.t)[1] gets the actual number
-population_stability(sim_niche, last = size(sim_niche.t)[1])
-```
-
-Just for perspective, where you estimate stability is under your control.  Here we estimate stability 'out towards the equilibrium' by specifying `last = 30` rather than using the whole time series.  This is the typical approach.
+Third, we can look at stability, defined as the average coefficient of variation estimated across all of the coefficients of variation for each species.  The CV is a measure of standardised variation - the standard deviation / mean (https://en.wikipedia.org/wiki/Coefficient_of_variation).  It is not 'stability' per se, but an estimation of how variable the dynamics are
 
 ```{julia}
 # here we use only the last 30.
-population_stability(sim_niche, last = 30)
+community_cv(sim_niche, last = 4)
+```
+
+There are may more meaures of stability.  One extension of the `community_cv` is partitioned variation in community biomass via `coefficient_of_variation` which computes the Coefficient of Variation (CV) of community biomass and its partition into average species CV (`community_cv` above), species mean CV and synchrony, along with the variation of each species; following Thibault & Connolly (2013).
+
+```{julia}
+coefficient_of_variation(sim_niche, last = 4)
 ```
 
 Finally, we can look at two measures of diversity.  First, we can get species richness.  This confirms that our persistence estimate (60%) is in line!
 
 ```{julia}
 # con
-foodweb_richness(sim_niche, last = 1)
+# richness(sim_niche; last = 4)
+shannon_diversity(sim_niche; last = 4)
 ```
 
 And we can estimate evenness
 
 ```{julia}
-foodweb_evenness(sim_niche; last = 10)
+evenness(sim_niche; last = 4)
 ```
 
 

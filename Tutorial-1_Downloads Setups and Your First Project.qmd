@@ -11,6 +11,7 @@ jupyter: julia-1.8
 
 ```{julia}
 #| echo: false
+#| include: false
 using DataFrames, StatsPlots, Plots, Random
 ```
 
