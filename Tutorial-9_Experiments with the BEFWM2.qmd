@@ -29,11 +29,13 @@ One of the tricks to doing experiments is learning how to run a loop.  Julia is 
 
 What we will do here is build a simple loop that makes 3 networks, each with a different species richness, but the same connectance.
 
+Note here that we introduce the use of the argument `tol_C`.  Because the `niche model` produces networks based on probability theory (it uses the beta-distribution), the connectance we ask for is not always the connectance we get.  The `tol_C` argument ensure that connectance is within a _tolerance_ range - in this case, having asked for `C = 0.2` and a `tol_C = 0.01` we will get `0.19 < C < 2.01`.  This is like embedding a while loop within the `FoodWeb` function!  We note too that the function `nichemodel` can take a value of `L` instead of `C`, and there is an associated `tol_L` argument for this choice too.
+
 ```{julia}
 Random.seed!(12325) # ensures your network and this one are the same
 
-S = [10,20,30]; # define the number of species
-C = 0.2; # define the connectance (complexity) of the network
+S = [10,20,30] # define the number of species
+C = 0.2 # define the connectance (complexity) of the network
 
 # collection zone for the networks
 nets = []
@@ -43,7 +45,7 @@ nets = []
 # we use push!() to add the food webs to nets
 # always start with a for and end with an end.
 for i in 1:3
-    push!(nets, FoodWeb(nichemodel, S[i]; C=C, tol = 0.01))
+    push!(nets, FoodWeb(nichemodel, S[i]; C=C, tol_C = 0.01))
 end
 ```
 
@@ -65,7 +67,11 @@ We can see that the `A` element is the matrix and you can guess that the `M` is 
 
 > a side note on the metabolic classes.  The default parameterisation, and nearly all of the published work with the BEFW, uses invertebrates for all the non-producer species.  It is possible to include others.  But the data, currently, are not helpful (low volume) in supporting robust inference with these types of species.
 
-Now, recall that we can look specifically at the matrix by using `nets[1].A` which grabs the `A` part.  We can also remember that `sum` applied to a matrix counts all the 1's.... thus is the estimate of the links.  Finally, recall that `size` applied to the network returns two numbers - the rows and columns.  For our networks, the matrix is square.  So grabbing one of these (rows = [1]) and squaring it delivers our 'potential number of links' (e.g. $species^2$).  We can put that all together here to define connectance as $Con = links/S^2$
+Now, recall that we can look specifically at the matrix by using `nets[1].A` which grabs the `A` part.  We introduce here the function `sum`.  As in **R**, `sum()` does what it says on the tin: for a vector, it addes up all the numbers and for a matrix, it does the same!  In our case here, when `sum()` is applied to a matrix of ones and zeros, it counts all the 1's.... thus is the estimate of the number of links in the community.  
+
+Finally, we note (again?) that `size` applied to the network returns two numbers - the number of rows and the number of columns.  For our networks, the matrix is square.  So grabbing one of these (rows = [1]) and squaring it delivers our 'potential number of links' (e.g. $species^2$).  
+
+We can put that all together here to define connectance as $Con = links/S^2$.  Do be careful to watch where you put the various `[]`'s.  One of them is about the _index_ (i.e. `[i]`) and the other is about the dimension (`[1]`) of the matrix.
 
 ```{julia}
 for i in 1:3
@@ -94,7 +100,7 @@ begin
     # while loop
 	while l < reps # reps is 3 here...
 	    # generate a network
-	    A = FoodWeb(nichemodel, 20; C=0.15, tol = 0.01)
+	    A = FoodWeb(nichemodel, 20; C=0.15, tol_C = 0.01)
 	    # add the network to the set
         push!(networks, A)
         # update the monitor

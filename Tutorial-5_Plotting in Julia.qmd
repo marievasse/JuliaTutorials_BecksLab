@@ -87,8 +87,8 @@ Plots can be saved and outputted using savefig or by using an output marco (e.g.
 
 #not run
 savefig(p1, "path/to/file/p1.png")
-png(p1, path/to/file/p1")
-pdf(p1, path/to/file/p1")
+png(p1, "path/to/file/p1")
+pdf(p1, "path/to/file/p1")
 ```
 
 Once you've created a plot it can be viewed or reopened in VS Code by navigating to the Julia explorer: Julia workspace symbol in the activity bar (three circles) and clicking on the plot object (e.g., p1). We advise that you always name and assign your plots (e.g. p1, p2, etc). The Plots package also has it's own [tutorial](https://docs.juliaplots.org/latest/tutorial/) for plotting in Julia.

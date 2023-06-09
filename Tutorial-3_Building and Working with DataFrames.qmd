@@ -31,7 +31,7 @@ dat = DataFrame(col1=[], col2=[], col3=[]) # we use [] to specify an empty colum
 Alternately, you can specify the data type for each column.
 
 ```{julia}
-dat1 = DataFrame(col1=Float64[], col2=Int64[], col3=Float64)
+dat1 = DataFrame(col1=Float64[], col2=Int64[], col3=Float64[])
 ```
 
 Of course, `col1` is not the only label you provide: variable names are super important and the conventions we use in **R** are also important here in **Julia**, e.g. `a.b` or `a_b` or `AaBa` but not `a b` (no spaces allowed).

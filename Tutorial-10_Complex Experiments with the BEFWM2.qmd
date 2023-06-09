@@ -132,5 +132,323 @@ plot(p1, p2, p3, layout=(3,1), legend = false)
 
 ### Experiment 2: The Functional Response
 
-### Experiment 3: S-C-K-Z-FR
+The functional response is the relationship between how much a consumer eats and the 'density' of the prey items.  If you can recall from your ecology courses/classes/modules, there are three classic shapes: The Type I, Type II and Type III.
 
+A predator feeding with a Type I delivers to the prey a 'constant mortality rate' (the slope of the Type I line).  This means that the effect of predation is density _independent_ because prey mortality rate does not vary by prey density.  Remember, density dependence (negative feedback that stabilises communities) is defined by survival decreasing with increasing density, or in this case, mortality rates _increasing_ with increasing density.
+
+A predator feeding with the Type II delivers an _inverse density dependent_ mortality rate.  The slope of the Type II line actually goes down as density of the prey goes up meaning that mortality rates for the prey, caused by the predator, are going down with prey density.  This means that the effect of predation is _inverse density dependent_ in the Type II.  This is **destabilising**.
+
+Finally, a predator feeding via a Type III can deliver a _density dependent_ mortality rate to the prey, but only at low prey densities.  This is an S shaped curve.  Below the inflection point, the slope is actually getting steeper.  This means that as prey density increases up to the inflection, their mortality rate from predation inceases (survival goes down with density going up). This is the hallmark of density dependence and can **stabilise** consumer-resource interactions.
+
+> Remember that the logistic growth equation, with a carying capacity specified, is also a source of _density dependent negative feedback_
+
+> Remember No. 2: The Type II is the MOST common.  Type I is rare and even non-existent because it suggests there are no limits to how much a consumer can eat.  Type III is also rare, but it is at least plausible and interesting.
+
+```{julia}
+#| echo: false
+
+f_t1(n) = 0.5*n
+f_t2(n) = 0.5*n/(0.2+0.01*n)
+f_t3(n) = 0.5*n^2/(10 + 0.01*n^2)
+
+plot(f_t1, 0, 100, label = "Type I")
+plot!(f_t2, 0, 100, label = "Type II")
+plot!(f_t3, 0, 100, label = "Type III")
+```
+
+#### How does the BEFW make a functional response?
+
+There are two formulations of the functional response.  One of them is called the _Bioenergetic_ response and the other is called the _Classic_.  In both cases, we ignore the Type I.
+
+The Bioenergetic functional response is deeply phenomenological in that the parameters that make the shapes move between Type II and III have no deliberate biological interpretation.  They function is defined by a 1/2 saturation point, an asymptote (which is nominally a maxiumum feeding rate) and an exponent, which is called the _hill exponent_.  The value of the exponent moves the model from Type II (h = 1) to Type III (h = 2).  The other variables define the overall shape.
+
+The Classic functional less phenomenological in that the response is defined more by 'traits': the attack rate of a consumer on a prey and the handling time of that prey.  But it also moves between the Type II and Type III shape based on an exponent.
+
+#### Creating Type II vs. Type III with the Bioenergetic response
+
+Let's look at using the Bioenergetic functional response, and see here how we can vary the shape between Type II and Type III. The argument to make this happen is the `h` argument, which stands for the _hill exponent_. We will look at how Richness, Biomass and Stability are affected by the hill exponent.
+
+One of the key things to note in the code is this block:
+
+```{julia}
+#| eval: false
+
+    # make the network
+    # Note that we specify the Environment, but there is no K or T set (using defaults)
+    # Note the new BioenergeticResponse function
+    fw_h = FoodWeb(nichemodel, S; C)
+    E = Environment(fw_h)
+    F = BioenergeticResponse(fw_h, h = h)
+```
+
+As we learned above, the `Environment` fucntion allows is to define `K` and `T`.  Here we see also that we can define the functional response function (`BioenergeticResponse`) which allows us to define specific parameters in that function (i.e. `h`).  These are both then used in the `model_parameters` function later.  
+
+> Note that we are not setting any parameters for the `Environment` here... it's there to prepare for the challenge exercise after this.
+
+Let's see it all put together
+
+```{julia}
+
+Random.seed!(12352)
+
+# fixed parameters
+S = 20
+C = 0.15
+
+# set the hill exponent to move from Type II to Type III)
+h_levels = [1.0, 1.1, 1.25, 2.0]
+
+# set collecting data frame 
+# we will look at how Richness, Biomass and Stability are affected by the hill exponent
+df_collect_h = DataFrame(h = [], FinalRichness = [], FinalBiomass = [], FinalStability = [])
+
+# create look across values of h
+for h in h_levels 
+    println("***> This is iteration with h = $h\n")
+    
+    # make the network
+    # Note that we specify the Environment, but there is no K or T set (using defaults)
+    # Note the new BioenergeticResponse function
+    fw_h = FoodWeb(nichemodel, S; C)
+    E = Environment(fw_h)
+    F = BioenergeticResponse(fw_h, h = h)
+    
+    # set body sizes and parameters 
+    B0 = rand(S)
+    params = ModelParameters(fw_h, functional_response = F, environment = E)
+
+    # simulate dynamics
+    out_h = simulate(params, B0)
+
+    # collect data 
+    fin_rich = foodweb_richness(out_h, last = 30)
+    fin_bio = total_biomass(out_h, last = 30)
+    stab = population_stability(out_h, last = 30)
+
+    push!(df_collect_h, [h, fin_rich, fin_bio, stab])
+end
+
+df_collect_h
+```
+
+Now, we can visualise these data
+
+```{julia}
+# Visualize the results
+p1_h = @df df_collect_h plot(:h, [:FinalStability],
+    legend = :bottomright,
+    ylabel = "Stability",
+    xlabel = "Functional response",
+    seriestype = [:scatter, :line])
+
+p2_h = @df df_collect_h plot(:h, [:FinalBiomass],
+    legend = :bottomright,
+    ylabel = "Biomass",
+    xlabel = "Functional response",
+    seriestype = [:scatter, :line])
+
+p3_h = @df df_collect_h plot(:h, [:FinalRichness],
+    legend = :bottomright,
+    ylabel = "Richness",
+    xlabel = "Functional response",
+    seriestype = [:scatter, :line])
+
+plot(p1_h, p2_h, p3_h, layout=(3,1), legend = false, size = (1000, 1000))
+```
+
+#### INTERPRETATION?
+
+What can you see happening as we move away from the destabilising Type II functional response?
+
+Can you modify this code to explore what happens at differnt values of K? You'll need to modify this section, and the collection data frame.
+
+```{julia}
+#| eval: false
+
+   # make the network
+    fw_h = FoodWeb(nichemodel, S; C)
+    E = Environment(fw_h)
+
+    # set body sizes and parameters 
+    B0 = rand(S)
+    F = BioenergeticResponse(fw_h, h = h)
+    params = ModelParameters(fw_h, functional_response = F, environment = E)
+```
+
+### Experiment 3: What is Z
+
+One of the central features of the link between the Bioenergetic Food Web model and the structure of a foodweb created by models like the Niche Model is the organisation of trophic levels.  At the heart of this is a _data driven_ assumption about the ratio of predator size to prey size.  This is called the _Predator Prey Mass Ratio_, or `PPMR` for short.  
+
+In 2006, Uli Brose and team collated hundreds of data [to reveal that](https://esajournals.onlinelibrary.wiley.com/doi/10.1890/0012-9658%282006%2987%5B2411%3ACBRINF%5D2.0.CO%3B2), on average, predators were between 10 and 100x bigger than their prey.
+
+In our modelling framework, we use this ratio to help organise species into trophic levels.  This is done by organising the bodymass vector, and via a parameter called `Z`.  The body mass of consumers is a function of their mean trophic level (T), and it increases with trophic level when Z ≥ 1 and decreases when Z ≤ 1 via this relationship (see Delmas et al 2017 and Williams et al 2007):
+
+$M_C = Z^(T-1)$
+
+[Brose et al 2006](https://onlinelibrary.wiley.com/doi/10.1111/j.1461-0248.2006.00978.x) explored the impact of the _PPMR_ on stability and dynamics as part of their wider exploration of scaling and allometry in the bioenergetic model.  Here we show you how to manipulate `Z` and it's effect on stability.  `Z` is specified in the call to FoodWeb as the allocation of species with specific sizes is central to the trophic structure of the model.  This argument is interfaced with the bodysize vector in `model_parameters()`
+
+```{julia}
+Random.seed!(12352)
+
+# fixed parameters
+S = 20
+C = 0.15
+
+# set the hill exponent to move from Type II to Type III)
+z_levels= [0.1, 1, 10, 100]
+
+# set collecting data frame 
+# we will look at how Richness, Biomass and Stability are affected by the hill exponent
+df_collect_z = DataFrame(z = [], FinalRichness = [], FinalBiomass = [], FinalStability = [])
+
+# create look across values of h
+for z in z_levels 
+    println("***> This is iteration with z = $z\n")
+    
+    # make the network
+    # Note that we specify the Environment, but there is no K or T set (using defaults)
+    # Note Z is specified when building the FoodWeb() network
+    fw_z = FoodWeb(nichemodel, S; C, Z = z)
+    E = Environment(fw_z)
+    
+    # set body sizes and parameters 
+    B0 = rand(S)
+    params = ModelParameters(fw_z, environment = E)
+
+    # simulate dynamics
+    out_z = simulate(params, B0)
+
+    # collect data 
+    fin_rich = foodweb_richness(out_z, last = 30)
+    fin_bio = total_biomass(out_z, last = 30)
+    stab = population_stability(out_z, last = 30)
+
+    push!(df_collect_z, [z, fin_rich, fin_bio, stab])
+end
+
+df_collect_z
+```
+
+As with the variation in `h`, we can create a set of figures too!  Perhaps it's worth your time to consult [Brose et al 2006](https://onlinelibrary.wiley.com/doi/10.1111/j.1461-0248.2006.00978.x) and [Reger et al 2017](https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.12713) to make sure you understand how Z works and particularly how stability is expected to vary with Z!  One of the most important things to understanding is why the stability metric is negative and what values of stability close, or far away, from zero mean.
+
+```{julia}
+# Visualize the results
+p1_z = @df df_collect_z plot(:z, [:FinalStability],
+    legend = :bottomright,
+    ylabel = "Stability",
+    xlabel = "Z value (PPMR)",
+    seriestype = [:scatter, :line])
+
+p2_z = @df df_collect_z plot(:z, [:FinalBiomass],
+    legend = :bottomright,
+    ylabel = "Biomass",
+    xlabel = "Z value (PPMR)",
+    seriestype = [:scatter, :line])
+
+p3_z = @df df_collect_z plot(:z, [:FinalRichness],
+    legend = :bottomright,
+    ylabel = "Richness",
+    xlabel = "Z value (PPMR)",
+    seriestype = [:scatter, :line])
+
+plot(p1_z, p2_z, p3_z, layout=(3,1), legend = false, size = (1000, 1000))
+```
+
+#### Challenge
+
+Could you modify this to ask about the interaction between Z and K?  This would be asking the question of whether the effect of PPMR on stability varies by system productivity.  Or you could ask about the interaction between the functional response, which we know also has a direct effect on stability by the assumption we make of a Type II or Type III shape, and the value of Z, which we also know impacts stability from Brose et al's work.
+
+### Experiment 4: Manipulating Competition among producers
+
+Our final experiment for this section involves manipulating how the basal producers compete with each other.  The default paramterisation of the model has each producer growing via the logistic equation and competing with itself via density dependence.  There is only intraspecific competition, no interspecific competition.
+
+We can modify this assumption by invoking another function called `ProducerCompetition`.  This function acts like `Environment` that we use to set `K` and `BioenergeticResponse` that we used to modify the functional response between Type II and Type III.
+
+The theory to recall is that coexistence among species is mediated by the balance between intraspecific and interspecific competition.  When intraspecific competition is greater than interspecific competition, there is coexistence.  However, when interspecific competition is greater than intraspecific competition, there will be compeitive exclusion and no coexistence.  
+
+We call the competition parameters $\alpha$. $\alpha~ii$ defines intraspecific competition and $\alpha~ij$ defines interspecific competition.  The $\alpha~ij$ defines how the species $j$ reduces the carrying capacity (equilibrium) of species $i$.  
+
+What we can do is set $\alpha~ii = 1$ and then vary $\alpha~ij$ from $<1$ to $>1$.  We can expect that there will a dramatic change in biomass and species richness as we move from $alpha~ii > alpha~ij$ to $alpha~ii < alpha~ij$.
+
+
+```{julia}
+S = 20 # define the number of species
+C = 0.2 # define the connectance (complexity) of the network
+Z = 100 # Predator Prey Mass Ratio
+
+# here we set the 
+interspecific_vals = 0.8:0.05:1.2 # a set of (9) values between 0.8 and 1.2 in steps of 0.05
+# collect(0.8:0.05:1.2) # see them if you want to
+
+
+# set collecting data frame 
+# we will look at how Richness, Biomass and Stability are affected by the hill exponent
+df_collect_comp = DataFrame(InterComp = [], FinalRichness = [], FinalBiomass = [], FinalStability = [])
+
+for alpha_ij in interspecific_vals
+    println("***> This is iteration with alpha_ij = $alpha_ij\n")
+    
+    # this will make always the same network and body mass
+    Random.seed!(123)
+    foodweb = FoodWeb(nichemodel, S, C = C, tol_C = 0.01, Z = Z)
+
+    # enhance detail in the network
+    # we specify E and F as before to re-enforce our understanding
+    E = Environment(foodweb, K = 10)
+    F = BioenergeticResponse(foodweb, h = 1)
+
+    # we specify competition here
+    # we fix intraspecific and variy interspecific
+    Comp = ProducerCompetition(foodweb; αii = 1, αij = alpha_ij)
+
+    # define parameters with extras
+    params_comp = ModelParameters(foodweb, environment = E, functional_response = F, producer_competition = Comp)
+
+    # set bodymass
+    B0 = rand(S)
+
+    # simulate
+    # note verbose = false ; remove this to see extinction detail for each sim
+    out_comp = simulate(params_comp, B0, verbose = false)
+
+    # generate stats and add to collector
+    # collect data 
+    fin_rich = foodweb_richness(out_comp, last = 30)
+    fin_bio = total_biomass(out_comp, last = 30)
+    stab = population_stability(out_comp, last = 30)
+
+    push!(df_collect_comp, [alpha_ij, fin_rich, fin_bio, stab])
+end
+
+df_collect_comp
+```
+
+Let's review the assumptions above.  We've set the `Predator Prey Mass Ratio` to 100.  We've set carrying capacity `K` to 10.  We've set the functional response `h` value to 1, so it's a Type II functional response.  Finally, we've set a range of interspecific competition to be 0.8 to 1.2 around the fixed intraspecific effect of 1.
+
+
+```{julia}
+p1 = @df df_collect_comp plot(:InterComp, [:FinalRichness],
+    ylabel = "Richness",
+    xlabel = "alpha_ij")
+p2 = @df df_collect_comp plot(:InterComp, [:FinalBiomass],
+    ylabel = "Biomass",
+    xlabel = "alpha_ij")
+p3 = @df df_collect_comp plot(:InterComp, [:FinalStability],
+    ylabel = "Stability",
+    xlabel = "alpha_ij")
+
+plot(p1, p2, p3, layout = (3,1), legend = false)
+```
+
+#### Challenge - Competition
+
+Perhaps consider expanding the code above to assess one of these?
+
+Is this pattern sensitive to specie richness?
+Is this pattern sensitive to the functional response?
+Is this pattern sensitive to the PPMR?
+Is this pattern sensitive to values of K?
+
+## Experiment 5: Multiple networks (replicates)
+
+To Do: run S (3 values), C (3 values) and h (3 values) where there are 5 replicate networks per combination.  Note we need 45 networks...
