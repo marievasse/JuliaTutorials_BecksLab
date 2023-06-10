@@ -234,67 +234,75 @@ Walking through this
 
 ### Helper Functions: What can we do with the outputs?
 
-As noted in the pre-amble, we are most often interested in additional information about the scenarios we build with the models.  These include, for example, total biomass, biodiversity and stability.  Let's see how we can calcuate some of these.  Keep in mind that to use these, we have to provide a model output AND a declaration of over how many time steps we want to calculate the metrics.  For example, we probably want to calculate most of these metrics when the system is at equilibrium.
+As noted in the pre-amble, we are most often interested in additional information about the scenarios we build with the models.  These include, for example, total biomass, biodiversity and stability.  Let's see how we can calcuate some of these.  
 
-#### Before you start with the helper functions
+#### How long till steady state?
 
-In order to use these helper functions, we need to know the number of time steps that our model has produced.
-
-It is important to know that 'time' is rather abstract in these models, partly because the integration of the equations to make the dynamics happens at a fine scale.  In order to understand what the number of data points are in your simulation, you can look at the `sim.t` part of the outputs.
-
-The other important thing to note is that the simulation have a built in stop point when the populations get to an equilibrium.  This means that even if we were to ask for n= 100000 time steps, the simulations will stop when this 'rule' is met.
-
-Finally, the algorithm is an adaptive one, so the number of output data points does not match 'time'
-
-We can find out what the number of steps is using the following code.
+We can find out how long the simulations ran to reach steady state - remember that this is a deterministic model that typicall reaches equilibrium for all species that survive.
 
 ```{julia}
-size(sim_niche.t) # this has 58 time points
+size(sim_niche.t)
 ```
 
-This little trick tells us the max number of time steps we can specify to calculate things, like the average biomass, stability, etc.
+#### Who went extinct and when?
 
-#### Using Some Helper Functions
+We can also find out who went extinct, and when.  You saw some of that detail, I hope, in the output of `simulate`.
+
+```{julia}
+get_extinct_species(sim_niche)
+```
+
+#### Biomass, Diversity and Stability
 
 First, we can get a meaure of total biomass in the community
 
 ```{julia}
-# we use last = 30 because the max is 58
-biomass(sim_niche, last = 4).total
+biomass(sim_niche)
 ```
 
-Second, we can an estimate of species persistence - how many have gone extinct!  Remember that we started with 20, so a value of 0.6 means that there are 12 species left.
+Second, we can an estimate of species persistence - how many have gone extinct!  Remember that we started with 20, so a value of 0.45 means that there are 12 species left.
 
 ```{julia}
 # here we specify last = 1 to get the estimate of % remaining from the start to end.
-species_persistence(sim_niche, last = 1)
+species_persistence(sim_niche) # the percentage that persist
+
+20*species_persistence(sim_niche) # the numbner left
 ```
 
-Third, we can look at stability, defined as the average coefficient of variation estimated across all of the coefficients of variation for each species.  The CV is a measure of standardised variation - the standard deviation / mean (https://en.wikipedia.org/wiki/Coefficient_of_variation).  It is not 'stability' per se, but an estimation of how variable the dynamics are
+Third, we can look at measures of diversity.  First, we can get species richness and a measure of diversity, using the Shannon index.  This confirms that our persistence estimate (45%) is in line!
 
 ```{julia}
-# here we use only the last 30.
-community_cv(sim_niche, last = 4)
+EcologicalNetworksDynamics.richness(sim_niche)
+shannon_diversity(sim_niche)
 ```
 
-There are may more meaures of stability.  One extension of the `community_cv` is partitioned variation in community biomass via `coefficient_of_variation` which computes the Coefficient of Variation (CV) of community biomass and its partition into average species CV (`community_cv` above), species mean CV and synchrony, along with the variation of each species; following Thibault & Connolly (2013).
+And we can estimate evenness:
+
+```{julia}
+evenness(sim_niche)
+```
+
+Finally, we can look at stability - all built in metrics of stability are based on the coefficient of variation of species biomass. The CV is a measure of standardised variation - the standard deviation / mean (https://en.wikipedia.org/wiki/Coefficient_of_variation).  It is not 'stability' in the strict mathematical sense, but an estimation of how variable the dynamics are.
+
+ defined as the average coefficient of variation estimated across all of the coefficients of variation for each species.  
+
+The master function is `coefficient_of_variation` and delivers four results - Coefficient of Variation (CV) of community biomass and its partition into average species CV (`community_cv` above), species mean CV and synchrony, along with the variation of each species; following Thibault & Connolly (2013):
+
+```{julia}
+coefficient_of_variation(sim_niche)
+```
+
+Note the warning.... do you understand what it's talking about?  Think about the extinctions detail above.  You can follow the instructions, right?
 
 ```{julia}
 coefficient_of_variation(sim_niche, last = 4)
 ```
 
-Finally, we can look at two measures of diversity.  First, we can get species richness.  This confirms that our persistence estimate (60%) is in line!
+You can get parts of this with specific helper functions, such as:
 
 ```{julia}
-# con
-# richness(sim_niche; last = 4)
-shannon_diversity(sim_niche; last = 4)
-```
-
-And we can estimate evenness
-
-```{julia}
-evenness(sim_niche; last = 4)
+# here we use only the last 30.
+community_cv(sim_niche)
 ```
 
 
