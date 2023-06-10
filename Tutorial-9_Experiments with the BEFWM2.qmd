@@ -20,7 +20,7 @@ As with our previous exercises, we need to have a few packages that allow making
 
 ```{julia}
 using DataFrames, Plots, Random, Distributions
-using EcologicalNetworks, EcologicalNetworksPlots, EcologicalNetworksDynamics
+using EcologicalNetworksDynamics
 ```
 
 ### Your (re)introduction to loops: making multiple networks example
@@ -164,9 +164,9 @@ for i in 1:3
     out = simulate(params, B0)
 
     # steps D: calculate metrics
-    fin_rich = foodweb_richness(out, last = 1)
-    fin_biomass = total_biomass(out, last = 20)
-    stability = population_stability(out, last = 20)
+    fin_rich = richness(out)
+    fin_biomass = biomass(out).total
+    stability = community_cv(out)
 
     # step E: add things to the data frame
     # note the first arg is the data frame and then

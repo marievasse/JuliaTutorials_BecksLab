@@ -16,9 +16,8 @@ In this tutorial, we are going to implement three experiments.  The first two wi
 You may want to start a new script in the project.  We'll need the following packages (they are already installed... so we just need `using`).
 
 ```{julia}
-using EcologicalNetworksDynamics
 using Random, Plots, Distributions, DataFrames, StatsPlots
-using EcologicalNetworksPlots, EcologicalNetworks
+using EcologicalNetworksDynamics
 ```
 
 ### Experiment 1: Carrying Capacity and the Predator Prey Mass Ratio
@@ -27,9 +26,8 @@ Now we are set for our first experiment.  Lets first establish the parameters we
 
 Z is the predator - prey mass ratio, and defines how much bigger or smaller the predators are from their prey. The data suggest it is between predators are between 10 and 100 times bigger than their prey [see Brose et al 2006](https://doi.org/10.1890/0012-9658(2006)87[2411:CBRINF]2.0.CO;2). This value interacts with setting trophic levels in the model. 
 
-The default setting for the models is 1 - i.e. all species are within the same order of magnitude, predators are not bigger than their prey.  Here, we creat a vector of values to explore, from predators being smaller, to them being 10 or 100 x larger as the data suggests.
+The default setting for the models is 1 - i.e. all species are within the same order of magnitude, predators are not bigger than their prey.  Here, we create a vector of values to explore, from predators being smaller, to them being 10 or 100 x larger as the data suggests.
 
-MORE ON HOW THE PPMR interacts with Trophic level?
 
 ```{julia}
 #Fixed Parameters
@@ -52,7 +50,7 @@ df_collect = DataFrame(Z = [], K = [], FinalRichness = [], FinalBiomass = [], Fi
 
 Now, set up the loop to use these variables and generate outputs. Notice that we use `for z in Z_levels` - this is a clever trick of the looping method, where `z` simply iterates over the values of `Z_levels` without having to specify the index value (e.g. no use of `Z_levels[i]` etc).
 
-The significant BIG thing here is the new `Environment` function which allows us to set things like the carrying capacity (K) of the resources and Temperature (more on that in later tutorials).  Here we use it to define custom values of the K paramter for carrying capacity, drawing on the values in the `K_levels` above.
+The significant BIG thing here is the LogisticGrowth function which allows us to set things like the carrying capacity (K) of the resources.  Here we use it to define custom values of the K paramter for carrying capacity, drawing on the values in the `K_levels` above.  Here, `pg` stands for Producer Growth function, and the paramter set in the food web is K.
 
 Note too our use of `println` and the values of `Z` and `K` to produce an informative _break_ between each combination.
 
@@ -64,8 +62,11 @@ for z in Z_levels
 
         println(" ***> This is iteration with Z = $z and K = $k\n")
 
+        # Define the food web
         fw = FoodWeb(nichemodel, S; C, Z = z)
-        Environment(fw, K = k)
+        # specify the K value of the producer growth function
+        # this updates the fw
+        LogisticGrowth(fw; K = k)
 
         B0 = rand(S)
         params = ModelParameters(fw)
@@ -73,9 +74,9 @@ for z in Z_levels
         out = simulate(params, B0)
 
         # collect info
-        fin_rich = foodweb_richness(out, last = 30)
-        fin_bio = total_biomass(out, last = 30)
-        stab = population_stability(out, last = 30)
+        fin_rich = richness(out)
+        fin_bio = biomass(out).total
+        stab = community_cv(out)
 
         push!(df_collect, [z, k, fin_rich, fin_bio, stab])
     end
@@ -174,16 +175,11 @@ One of the key things to note in the code is this block:
 #| eval: false
 
     # make the network
-    # Note that we specify the Environment, but there is no K or T set (using defaults)
     # Note the new BioenergeticResponse function
     fw_h = FoodWeb(nichemodel, S; C)
-    E = Environment(fw_h)
-    F = BioenergeticResponse(fw_h, h = h)
+    BioenergeticResponse(fw_h, h = h)
 ```
-
-As we learned above, the `Environment` fucntion allows is to define `K` and `T`.  Here we see also that we can define the functional response function (`BioenergeticResponse`) which allows us to define specific parameters in that function (i.e. `h`).  These are both then used in the `model_parameters` function later.  
-
-> Note that we are not setting any parameters for the `Environment` here... it's there to prepare for the challenge exercise after this.
+ Here we see also that we can define the functional response function (`BioenergeticResponse`) which allows us to define specific parameters in that function (i.e. `h`).  Like the Producer Growth function, this updates the foodweb.
 
 Let's see it all put together
 
@@ -210,20 +206,21 @@ for h in h_levels
     # Note that we specify the Environment, but there is no K or T set (using defaults)
     # Note the new BioenergeticResponse function
     fw_h = FoodWeb(nichemodel, S; C)
-    E = Environment(fw_h)
-    F = BioenergeticResponse(fw_h, h = h)
+
+    # update h from default of 2 to value in h_level
+    BioenergeticResponse(fw_h, h = h)
     
     # set body sizes and parameters 
     B0 = rand(S)
-    params = ModelParameters(fw_h, functional_response = F, environment = E)
+    params = ModelParameters(fw_h)
 
     # simulate dynamics
     out_h = simulate(params, B0)
 
     # collect data 
-    fin_rich = foodweb_richness(out_h, last = 30)
-    fin_bio = total_biomass(out_h, last = 30)
-    stab = population_stability(out_h, last = 30)
+    fin_rich = richness(out_h)
+    fin_bio = biomass(out_h).total
+    stab = community_cv(out_h)
 
     push!(df_collect_h, [h, fin_rich, fin_bio, stab])
 end
@@ -267,12 +264,12 @@ Can you modify this code to explore what happens at differnt values of K? You'll
 
    # make the network
     fw_h = FoodWeb(nichemodel, S; C)
-    E = Environment(fw_h)
+    LogisticGrowth(fw_h, K = k)
+    BioenergeticResponse(fw_h, h = h)
 
     # set body sizes and parameters 
     B0 = rand(S)
-    F = BioenergeticResponse(fw_h, h = h)
-    params = ModelParameters(fw_h, functional_response = F, environment = E)
+    params = ModelParameters(fw_h)
 ```
 
 ### Experiment 3: What is Z
@@ -294,7 +291,7 @@ Random.seed!(12352)
 S = 20
 C = 0.15
 
-# set the hill exponent to move from Type II to Type III)
+# set the PPRM
 z_levels= [0.1, 1, 10, 100]
 
 # set collecting data frame 
@@ -309,19 +306,18 @@ for z in z_levels
     # Note that we specify the Environment, but there is no K or T set (using defaults)
     # Note Z is specified when building the FoodWeb() network
     fw_z = FoodWeb(nichemodel, S; C, Z = z)
-    E = Environment(fw_z)
     
     # set body sizes and parameters 
     B0 = rand(S)
-    params = ModelParameters(fw_z, environment = E)
+    params = ModelParameters(fw_z)
 
     # simulate dynamics
     out_z = simulate(params, B0)
 
     # collect data 
-    fin_rich = foodweb_richness(out_z, last = 30)
-    fin_bio = total_biomass(out_z, last = 30)
-    stab = population_stability(out_z, last = 30)
+    fin_rich = richness(out_z)
+    fin_bio = biomass(out_z).total
+    stab = community_cv(out_z)
 
     push!(df_collect_z, [z, fin_rich, fin_bio, stab])
 end
@@ -372,6 +368,8 @@ What we can do is set $\alpha~ii = 1$ and then vary $\alpha~ij$ from $<1$ to $>1
 
 
 ```{julia}
+#| eval: false
+
 S = 20 # define the number of species
 C = 0.2 # define the connectance (complexity) of the network
 Z = 100 # Predator Prey Mass Ratio
@@ -393,16 +391,15 @@ for alpha_ij in interspecific_vals
     foodweb = FoodWeb(nichemodel, S, C = C, tol_C = 0.01, Z = Z)
 
     # enhance detail in the network
-    # we specify E and F as before to re-enforce our understanding
-    E = Environment(foodweb, K = 10)
-    F = BioenergeticResponse(foodweb, h = 1)
-
-    # we specify competition here
-    # we fix intraspecific and variy interspecific
-    Comp = ProducerCompetition(foodweb; αii = 1, αij = alpha_ij)
+    # specify K
+    LogisticGrowth(foodweb; K = 10)
+    # we fix intraspecific = 1 and vary interspecific
+    ProducerCompetiton(foodweb; αii = 1.0, αij = 1)
+    # set the hill exponent to 1 (type II Functional Response)
+    BioenergeticResponse(foodweb, h = 1)
 
     # define parameters with extras
-    params_comp = ModelParameters(foodweb, environment = E, functional_response = F, producer_competition = Comp)
+    params_comp = ModelParameters(foodweb)
 
     # set bodymass
     B0 = rand(S)
@@ -413,9 +410,9 @@ for alpha_ij in interspecific_vals
 
     # generate stats and add to collector
     # collect data 
-    fin_rich = foodweb_richness(out_comp, last = 30)
-    fin_bio = total_biomass(out_comp, last = 30)
-    stab = population_stability(out_comp, last = 30)
+    fin_rich = richness(out_comp)
+    fin_bio = biomass(out_comp).total
+    stab = community_cv(out_comp)
 
     push!(df_collect_comp, [alpha_ij, fin_rich, fin_bio, stab])
 end
@@ -427,6 +424,7 @@ Let's review the assumptions above.  We've set the `Predator Prey Mass Ratio` to
 
 
 ```{julia}
+#| eval: false
 p1 = @df df_collect_comp plot(:InterComp, [:FinalRichness],
     ylabel = "Richness",
     xlabel = "alpha_ij")
