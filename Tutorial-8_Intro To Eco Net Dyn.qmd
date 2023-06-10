@@ -16,7 +16,7 @@ This section of the tutorials initiates you into using the Bioenergetic Food Web
 ```{julia}
 #| echo: false
 using DataFrames, Plots, Random, Distributions
-using EcologicalNetworks, EcologicalNetworksPlots, EcologicalNetworksDynamics
+using EcologicalNetworksDynamics
 ```
 
 **FOR ALL USERS AS OF JUNE 2023**
@@ -254,28 +254,43 @@ get_extinct_species(sim_niche)
 
 #### Biomass, Diversity and Stability
 
-First, we can get a meaure of total biomass in the community
+First, we can get a meaure of total biomass in the community, at equilibrium, and that of each species.  Note how you can get the components too.
 
 ```{julia}
 biomass(sim_niche)
 ```
 
+```{julia}
+# components
+biomass(sim_niche).total
+```
+
+```{julia}
+biomass(sim_niche).species
+```
+
 Second, we can an estimate of species persistence - how many have gone extinct!  Remember that we started with 20, so a value of 0.45 means that there are 12 species left.
 
 ```{julia}
-# here we specify last = 1 to get the estimate of % remaining from the start to end.
-species_persistence(sim_niche) # the percentage that persist
+# the percentage that persist
+species_persistence(sim_niche) 
+```
 
+```{julia}
+# quick calculation of number left (but see richness below!)
 20*species_persistence(sim_niche) # the numbner left
 ```
+
 
 Third, we can look at measures of diversity.  First, we can get species richness and a measure of diversity, using the Shannon index.  This confirms that our persistence estimate (45%) is in line!
 
 ```{julia}
-EcologicalNetworksDynamics.richness(sim_niche)
-shannon_diversity(sim_niche)
+richness(sim_niche)
 ```
 
+```{julia}
+shannon_diversity(sim_niche)
+```
 And we can estimate evenness:
 
 ```{julia}
