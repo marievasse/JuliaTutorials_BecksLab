@@ -21,8 +21,14 @@ using EcologicalNetworksDynamics
 
 **FOR ALL USERS AS OF JUNE 2023**
 
-Navigate to the shared google drive.
-**Copy** (e.g. do NOT drag) `EcologicalNetworksDynamics.jl-ni_usecase` from the drive folder to your Documents folder
+**Navigate** to the shared google drive in Chrome or your browser: `BEFWM2Access`.
+
+Now, choose to **Download** the `EcologicalNetworksDynamics.jl-dev` file.  Make sure it's the `-dev` file.  It will form a zipped folder and put it in your Downloads folder.
+
+After this, double click the zipped folder in Downloads to get the original folder.
+
+Then, you can drag `EcologicalNetworksDynamics.jl-dev` from the Downlads folder to your **Documents** folder on your computer (this is not google drive...)
+
 
 In the Julia REPL, type
 
@@ -32,14 +38,15 @@ Then, enter the package management zone by typing `]`
 Finally enter this detail.
 
 Mac:
-`dev ~/Documents/EcologicalNetworksDynamics.jl-ni_usecase`
+`dev ~/Documents/EcologicalNetworksDynamics.jl-dev`
 
 PC
-`dev C:/Users/YOURUSERNAME/Documents/EcologicalNetworksDynamics.jl-ni_usecase`
+`dev C:/Users/YOURUSERNAME/Documents/EcologicalNetworksDynamics.jl-dev`
+
+Now go to the section **## Setting Up to Use the Ecological Networks Dynamics modelling**
 
 
-**Currently Not Available for Guest Users**
-**DO NOT USE - Move to ## Setting Up to Use the Ecological Networks Dynamics modelling**
+**DO NOT USE - Currently Not Available for Guest Users - DO NOT USE**
 
 Navigate to the [GitHub location for the BioEnergetic Model](https://github.com/BecksLab/EcologicalNetworksDynamics.jl).
 
@@ -70,7 +77,7 @@ And now, you are ready to construct a script using the modelling tools!
 
 ## Packages I need
 using DataFrames, Plots, Random, Distributions
-using EcologicalNetworks, EcologicalNetworksPlots, EcologicalNetworksDynamics
+using EcologicalNetworksDynamics
 
 ## Time to do some Experiments!
 ```
@@ -234,7 +241,7 @@ Walking through this
 
 ### Helper Functions: What can we do with the outputs?
 
-As noted in the pre-amble, we are most often interested in additional information about the scenarios we build with the models.  These include, for example, total biomass, biodiversity and stability.  Let's see how we can calcuate some of these.  
+As noted in the pre-amble, we are most often interested in additional information about the scenarios we build with the models.  These include, for example, total biomass, biodiversity and stability.  Let's see how we can calcuate some of these.
 
 #### How long till steady state?
 
@@ -273,7 +280,7 @@ Second, we can an estimate of species persistence - how many have gone extinct! 
 
 ```{julia}
 # the percentage that persist
-species_persistence(sim_niche) 
+species_persistence(sim_niche)
 ```
 
 ```{julia}
@@ -299,7 +306,7 @@ evenness(sim_niche)
 
 Finally, we can look at stability - all built in metrics of stability are based on the coefficient of variation of species biomass. The CV is a measure of standardised variation - the standard deviation / mean (https://en.wikipedia.org/wiki/Coefficient_of_variation).  It is not 'stability' in the strict mathematical sense, but an estimation of how variable the dynamics are.
 
- defined as the average coefficient of variation estimated across all of the coefficients of variation for each species.  
+ defined as the average coefficient of variation estimated across all of the coefficients of variation for each species.
 
 The master function is `coefficient_of_variation` and delivers four results - Coefficient of Variation (CV) of community biomass and its partition into average species CV (`community_cv` above), species mean CV and synchrony, along with the variation of each species; following Thibault & Connolly (2013):
 
@@ -316,8 +323,7 @@ coefficient_of_variation(sim_niche, last = 4)
 You can get parts of this with specific helper functions, such as:
 
 ```{julia}
-# here we use only the last 30.
-community_cv(sim_niche)
+community_cv(sim_niche, last = 4)
 ```
 
 
